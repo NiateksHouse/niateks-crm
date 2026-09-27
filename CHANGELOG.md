@@ -10,6 +10,10 @@ Not: 1.9.0 öncesi sürümler iki haneli şemayla (V1.0–V1.9) çıktı; SemVer
 
 
 
+
+## [1.10.0] - 2026-09-27
+- Giris ekrani atolye fotografli yeni tasarıma gecti: tam ekran fotograf + koyu yari saydam kart, koza markasi, zeytin yesili buton; tum auth modlari (giris, kurulum, sifremi unuttum, sifre degisimi, sunucu yok) yeniden stillendi; captcha ve tum giris mantigi korundu; img/login-bg.jpg pakete eklendi (surumle.sh guncellendi)
+- Paket: Versiyon/Niateks_CRM_v1.10.0.zip
 ## [1.9.2] - 2026-09-27
 - Sürüm raporu otomasyonu: her sürümde surumle.sh artik tunc@niateks.com'a otomatik rapor maili gonderiyor (bu sürümde yapılanlar + paket ekleme/cikarma/degisim raporu + son sürümler; surum_mail.php, SMTP mail_config.php'den)
 - Paket: Versiyon/Niateks_CRM_v1.9.2.zip
