@@ -43,13 +43,14 @@ rm -rf "$WORK" && mkdir -p "$WORK/nx_data"
 # ---- index.html icindeki APP_VERSION'i guncelle ----
 sed -i "s/const APP_VERSION='[^']*'/const APP_VERSION='V${NEXT}'/" index.html
 cp index.html api.php norm.php intro.js .htaccess KURULUM.md "$WORK/"
+mkdir -p "$WORK/img" && cp img/login-bg.jpg "$WORK/img/" 2>/dev/null || echo 'UYARI: img/login-bg.jpg pakete eklenemedi!'
 [ -f "$CHANGELOG" ] && cp "$CHANGELOG" "$WORK/"
 printf 'NIA-2026-KX94-MT37\n' > "$WORK/nx_data/setup_code.txt"
-printf 'Niateks House CRM\nSurum: V%s\nTarih: %s\nDegisiklik: %s\nIcerik: index.html, api.php, norm.php, intro.js, .htaccess, KURULUM.md, CHANGELOG.md, VERSION.txt, nx_data/setup_code.txt\nGeri donus: onceki Niateks_CRM_v*.zip dosyasini acip sunucuya yukleyin.\n' "$NEXT" "$STAMP" "$NOT" > "$WORK/VERSION.txt"
+printf 'Niateks House CRM\nSurum: V%s\nTarih: %s\nDegisiklik: %s\nIcerik: index.html, api.php, norm.php, intro.js, .htaccess, KURULUM.md, CHANGELOG.md, VERSION.txt, img/login-bg.jpg, nx_data/setup_code.txt\nGeri donus: onceki Niateks_CRM_v*.zip dosyasini acip sunucuya yukleyin.\n' "$NEXT" "$STAMP" "$NOT" > "$WORK/VERSION.txt"
 
 # ---- git: surum commit + tag (repo varsa; yoksa sessizce atlanir) ----
 if git rev-parse --git-dir >/dev/null 2>&1; then
-  git add index.html CHANGELOG.md api.php norm.php intro.js .htaccess KURULUM.md surumle.sh surum_mail.php 2>/dev/null || true
+  git add index.html CHANGELOG.md api.php norm.php intro.js .htaccess KURULUM.md surumle.sh surum_mail.php img 2>/dev/null || true
   if ! git diff --cached --quiet 2>/dev/null; then
     git commit -q -m "V$NEXT: $NOT" && git tag -f "v$NEXT" && echo "== Git: commit + tag v$NEXT olusturuldu."
   else
