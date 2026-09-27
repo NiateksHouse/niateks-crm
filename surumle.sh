@@ -47,6 +47,17 @@ cp index.html api.php norm.php intro.js .htaccess KURULUM.md "$WORK/"
 printf 'NIA-2026-KX94-MT37\n' > "$WORK/nx_data/setup_code.txt"
 printf 'Niateks House CRM\nSurum: V%s\nTarih: %s\nDegisiklik: %s\nIcerik: index.html, api.php, norm.php, intro.js, .htaccess, KURULUM.md, CHANGELOG.md, VERSION.txt, nx_data/setup_code.txt\nGeri donus: onceki Niateks_CRM_v*.zip dosyasini acip sunucuya yukleyin.\n' "$NEXT" "$STAMP" "$NOT" > "$WORK/VERSION.txt"
 
+# ---- git: surum commit + tag (repo varsa; yoksa sessizce atlanir) ----
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  git add index.html CHANGELOG.md api.php norm.php intro.js .htaccess KURULUM.md surumle.sh surum_mail.php 2>/dev/null || true
+  if ! git diff --cached --quiet 2>/dev/null; then
+    git commit -q -m "V$NEXT: $NOT" && git tag -f "v$NEXT" && echo "== Git: commit + tag v$NEXT olusturuldu."
+  else
+    echo "== Git: kod degisikligi yok, commit atlandi (tag yenilendi)."
+  fi
+  git tag -f "v$NEXT" 2>/dev/null || true
+fi
+
 # ---- CHANGELOG.md'ye yeni surum bolumunu ekle (baslik/blog kismini en ustte tutar) ----
 # Ayni surum tekrar paketlenirse (yeniden yayin) changelog'a ikinci kez yazmaz.
 if [ -f "$CHANGELOG" ]; then
@@ -87,3 +98,12 @@ echo "== HATIRLATMA: Mail gonderimi icin sunucuda koza/nx_data/mail_config.php b
 echo "   Dosya yoksa sistem PHP mail() yedegini kullanir. Ayrinti: api.php basindaki 'posta hesabi' yorumu."
 echo "== Versiyon klasoru icerigi:"
 ls -la "$VERSIYON_KLASORU"
+
+# ---- git push (yapilandirilmis remote varsa; basarisizsa paket etkilenmez) ----
+if git rev-parse --git-dir >/dev/null 2>&1 && git remote get-url origin >/dev/null 2>&1; then
+  if git push -q origin main --tags 2>/dev/null; then
+    echo "== Git: GitHub'a push edildi (origin/main + tagler)."
+  else
+    echo "== Git: push basarisiz (baglanti/izin) — 'git push origin main --tags' ile sonra deneyin."
+  fi
+fi
