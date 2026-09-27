@@ -1,0 +1,62 @@
+EK GÖREV: Giriş alanlarında otomatik yazı düzeni (büyük/küçük harf) normalizasyonu.
+
+Bağlam: Önceki "dinamik ürün kartı" görevinin devamı. Aynı kod tabanı, aynı çalışma kuralları: önce mevcut form/input yapısını incele, kısa plan sun, onayımı bekle, adım adım ilerle, her adım sonunda dur. Yeni bağımlılık eklemeden önce sor.
+
+AMAÇ
+Kullanıcı bilgi girerken alan tipine göre büyük/küçük harf düzeni otomatik düzelsin. Küçük harfle başlasa bile uygun alanlarda baş harf büyüsün. E-posta, web adresi, kod gibi alanlara asla dokunulmasın.
+
+1. FORMAT KURALI (alan tanımında sabit)
+attribute_definitions tablosuna "format" alanı ekle. Değerler:
+- sentence: cümle başı büyük, gerisine dokunma (notlar, açıklamalar)
+- title: her kelimenin baş harfi büyük (ürün adı, firma adı, kişi adı, adres, renk adı)
+- upper: tamamı büyük (kodlar, SKU, para birimi)
+- none: hiç dokunma (e-posta, URL, telefon, Pantone kodu, IBAN, vergi no, dosya/kod alanları)
+Kurallar:
+- Format alan tanımından gelir; kart/form içinde kullanıcı tarafından değiştirilemez veya kapatılamaz.
+- Yeni alan oluştururken varsayılan format "none" olsun (yanlışlıkla bozma riskine karşı); düzeltme isteniyorsa yönetimde bilinçli seçilsin.
+- Veri tipine göre zorunlu kısıt: e-posta, URL, telefon tiplerine "none" dışında format atanamasın (UI ve backend reddetsin).
+- Mevcut CRM formlarında (firma, kişi, lead, teklif vb.) aynı mekanizma kullanılacak; önce ürün kartı alanlarına uygula, sonra ortak yardımcı (helper) üzerinden diğer formlara yay. Yayılım için form/alan listesini planda ver, ben onaylayayım.
+
+2. NORMALİZASYON MANTIĞI (tek ortak fonksiyon; frontend ve backend aynı kuralları kullansın)
+- Türkçe yerel ayar zorunlu: toLocaleUpperCase('tr-TR') / toLocaleLowerCase('tr-TR'). İ/ı dönüşümü doğru olmalı ("istanbul" → "İstanbul", "ışık" → "Işık").
+- Baştaki/sondaki boşlukları temizle, ardışık boşlukları teke indir.
+- title formatı için:
+  - Değer tamamen küçük veya tamamen BÜYÜK harfse: her kelimeyi "İlk harf büyük, gerisi küçük" yap (istisna listesi hariç).
+  - Karışık yazılmışsa: yalnızca küçük harfle başlayan ve geri kalanı tamamen küçük olan kelimelerin baş harfini büyüt; karışık harfli kelimelere (iPhone, eBay, A.Ş.) dokunma.
+  - Kesmeden sonrasını büyütme: "ali'nin" → "Ali'nin".
+  - Tire ve slash ile ayrılan parçaları ayrı kelime say: "mavi-beyaz" → "Mavi-Beyaz".
+  - Bağlaçlar (ve, ile, için, ya da) başlık içinde küçük kalabilir; yönetimden açılıp kapatılabilir ayar olsun, varsayılan açık.
+  - Rakam ve ölçü ifadelerine dokunma ("70x140", "500 gr/m²").
+- sentence formatı için: cümle başı ve nokta/soru/ünlem sonrası ilk harf büyür; geri kalan olduğu gibi kalır.
+- upper formatı için: tamamı tr-TR büyük harf.
+- İstisna listesi (yönetimden düzenlenebilir tablo: text_exceptions): kısaltmalar ve marka yazımları, birebir korunur. Seed: OEKO-TEX, GOTS, BCI, AQL, A.Ş., Ltd. Şti., PVC, EUR, USD, iPhone, eBay. Eşleşme büyük/küçük harfe duyarsız yapılır, çıktı listedeki yazımla verilir.
+
+3. NE ZAMAN UYGULANIR
+- Alandan çıkınca (blur). Yazarken (her tuşta) DÜZELTME YAPMA, imleç zıplar.
+- Kaydetme sırasında backend aynı normalizasyonu tekrar uygular (import, API, toplu giriş yolları dahil), UI atlanamasın.
+- Toplu import ve mevcut veriye geriye dönük uygulama: otomatik çalıştırma; önce "kuru çalıştırma" raporu üret (kaç kayıt, hangi değişiklikler), onayımı bekle.
+
+4. KULLANICI GERİ BİLDİRİMİ
+- Düzeltme sessiz olmasın: alan kısa süre vurgulansın ve "Otomatik düzeltildi · Geri al" ipucu çıksın. Geri al, o alanın orijinal girdisini tek tıkla geri getirsin (oturum içinde tutulur; orijinal girdiyi veritabanında saklama, ayrıca öner).
+- Geri alınan değer aynı blur'da tekrar düzeltilmesin; kullanıcı alanı tekrar düzenleyene kadar bekle.
+
+5. İMLA (BU ADIMDA UYGULAMA)
+- Yazım/imla düzeltmesi bu görevin kapsamı DIŞINDA. Sadece ileride eklenebilmesi için normalizasyon fonksiyonunu modüler tut (harf düzeni ayrı, imla önerisi ayrı bir adım olabilsin).
+- Sadece tarayıcı yazım denetimi: metin alanlarında lang="tr" ve spellcheck açık olsun (e-posta/URL/kod alanlarında kapalı).
+- Sessiz kelime değiştirme yapma.
+
+6. TEST (yaz ve çalıştır)
+- "istanbul" → "İstanbul"; "ışık tekstil a.ş." → "Işık Tekstil A.Ş."; "OEKO-TEX" ve "oeko-tex" → "OEKO-TEX" (istisna listesi)
+- "ali'nin havlusu" → "Ali'nin Havlusu"; "MAVİ HAVLU" → "Mavi Havlu"; "iPhone kılıfı" → "iPhone Kılıfı" (karışık kelimeye dokunulmaz, küçük başlayan kelime büyür)
+- "70x140" ve "500 gr/m²" değişmez
+- E-posta ("Info@Niateks.com"), URL, telefon, Pantone ("Pantone 19-4052") alanları hiç değişmez
+- Backend, UI'yi atlayan bir istekte de aynı sonucu verir
+- İstisna listesine eklenen yeni kısaltma sonraki girişlerde uygulanır
+
+7. ADIM SIRASI (her adım sonunda dur)
+1. Mevcut form/input yapısı ve alan listesi incelemesi + plan (hangi alan hangi format)
+2. Normalizasyon fonksiyonu + birim testleri (frontend/backend ortak)
+3. attribute_definitions.format + text_exceptions migration/seed + yönetim ekranı
+4. Ürün kartı alanlarına blur uygulaması + "Otomatik düzeltildi · Geri al" arayüzü
+5. Backend doğrulaması (kaydetme yolunda zorunlu uygulama)
+6. Diğer CRM formlarına

@@ -1,0 +1,24 @@
+# Niateks House CRM — git yoksayma listesi
+
+# Canlı veri: veritabanı, oturumlar, yüklenen görseller ve GİZLİ mail ayarları (mail_config.php)
+nx_data/
+
+# Sürüm paketleri (zip arşivi sürüm geçmişini tutar; kod geçmişi git'te yaşar)
+Versiyon/
+
+# Local geliştirme sunucusu (serve.php deploy'da hariç tutulur ama kaynağı git'te kalsın)
+# serve.php
+
+# Geçici / test dosyaları
+*.log
+tmp_*
+cap.txt
+cap.json
+up*.json
+live_*.json
+lv.html
+
+# OS / editör
+Thumbs.db
+.DS_Store
+*.swp

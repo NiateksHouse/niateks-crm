@@ -1,0 +1,27 @@
+# Niateks House CRM — Apache (cPanel) yapılandırması
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# Veri klasörünü web'den tamamen kapat
+RewriteRule ^nx_data/ - [F,L]
+# /api/... isteklerini api.php'ye yönlendir
+RewriteRule ^api/?(.*)$ api.php [QSA,L]
+</IfModule>
+
+# Veri ve oturum dosyalarını koru
+<FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|log|txt)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_authz_core.c>
+  <Files "serve.php">
+    Require all denied
+  </Files>
+</IfModule>

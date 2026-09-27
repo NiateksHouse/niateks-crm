@@ -1,0 +1,62 @@
+EK GÖREV: "Ürün Yönetimi" yönetim ekranı (ürün tipleri, alan kütüphanesi, tip-alan eşlemesi).
+
+Bağlam: Dinamik ürün kartı görevinin 3. adımı. Aynı veri modeli (product_types, attribute_definitions, product_type_attributes, text_exceptions) ve aynı çalışma kuralları geçerli: önce mevcut yapıyı incele, kısa plan sun, onayımı bekle, adım adım ilerle, her adım sonunda dur. Yeni bağımlılık eklemeden önce sor. Referans: urun-karti-ornek.html (kart/drawer görünümü), yönetim ekranı için yeni tasarla ama aynı UI diline uy.
+
+KONUM VE YETKİ
+- Menü: Ayarlar > Ürün Yönetimi. Üç sekme: Ürün tipleri, Alan kütüphanesi, Tip-alan eşlemesi. Ayrıca Metin istisnaları sekmesi (text_exceptions; harf düzeni görevindeki istisna listesi).
+- Yalnızca yönetici rolü görür ve düzenler. Diğer roller ürün kartında tanımları salt okunur kullanır. Mevcut rol yapısına göre uygulamayı öner.
+
+SEKME 1: ÜRÜN TİPLERİ
+- Ağaç görünümü (üst tip > alt tip). Ekle, yeniden adlandır, aktif/pasif yap, sırala.
+- Yeni tip: ad, üst tip (opsiyonel). Alt tip üst tipin alanlarını miras alır; alt tipte zorunluluk ezilebilir.
+- "Ürün ekle" listesinde yalnızca aktif yaprak tipler seçilebilir (üst tipler gruplama başlığı olarak görünür). "Manuel / Diğer" sistem tipidir: silinemez, adı ve yeri değiştirilemez.
+- Kopyalayarak oluştur: mevcut bir tipi (alan eşlemesiyle) kopyalayıp yeni ad ver.
+
+SEKME 2: ALAN KÜTÜPHANESİ (global)
+- Liste: etiket, key, veri tipi, birim, grup, format, kullanım sayısı (kaç tipte/kaç kartta kullanılıyor), arşivli mi. Filtre ve arama.
+- Alan ekleme formu: etiket, key (etiketten otomatik üretilir, ASCII, benzersiz), veri tipi (text, number, select, multi, bool, blend), birim, seçenekler (select/multi için, sıralı), min/max (number için), grup (Kumaş, Ölçü, Renk, Konstrüksiyon, Marka, Test, veya yeni grup), format (sentence, title, upper, none; varsayılan none).
+- Alan silinmez, yalnızca arşivlenir. Arşivli alan yeni eşlemelere eklenemez, mevcut kartlarda snapshot etiket/birimle görünmeye devam eder.
+
+SEKME 3: TİP-ALAN EŞLEMESİ
+- Sol: ürün tipi seç. Sağ: bu tipin alanları; miras gelenler ayrı işaretli ("Havlu'dan miras: Ev Tekstili") ve alt tipte yalnızca zorunluluğu ezilebilir. Kendi alanları eklenir/çıkarılır.
+- Her satırda: zorunlu mu, sıra (sürükle-bırak), grup. Alan ekleme: kütüphaneden arama ile seç.
+- Değişikliklerin önizlemesi: "Bu değişiklik X mevcut kartı etkiler" bilgisini göster (aşağıdaki kurallara göre).
+
+KİLİT VE DOĞRULAMA KURALLARI (UI ve backend'de zorunlu)
+- Alan key'i oluşturulduktan sonra değiştirilemez.
+- Alan veri tipi ve birimi, herhangi bir kartta kullanıldıysa değiştirilemez (read-only + açıklama). Gerekirse yeni alan oluşturup eskisini arşivle.
+- Select/multi seçenekleri: kullanılan seçenek silinemez, yalnızca pasif yapılır; yeni seçenek eklenebilir.
+- Ürün tipinin üst tipi, tipte kart varsa değiştirilemez.
+- Kartı olan tip silinemez, yalnızca pasif yapılabilir. Kartı olmayan tip silinebilir (onay ile).
+- Tip-alan eşlemesinde bir alanı çıkarma: o alan için kartlarda değer varsa alan kartlardan silinmez, "eşlemeden çıkarıldı" durumunda salt okunur kalır (veri kaybı olmasın); yeni kartlarda görünmez.
+- Alanı zorunlu yapma: mevcut kartlar otomatik "Teklife hazır" durumundan çıkar mı? Otomatik değiştirme YAPMA; etkilenen kart sayısını göster, kartlar bir sonraki düzenlemede doğrulanır.
+- Tekrar önleme: tip adı ve alan etiketi tr-TR büyük/küçük harf ve Türkçe karakter duyarsız karşılaştırılsın ("Çorap", "Corap", "ÇORAP" aynı sayılır). Benzer varsa uyar ve mevcut olanı öner.
+- Sistem alanları (ortak blok: adet dağılımı, fiyat, teslim tarihi, incoterm, ödeme, ambalaj, numune) yönetim ekranında gösterilir ama düzenlenemez/silinemez (kilit ikonu).
+- Tüm değişiklikler denetim kaydına yazılır (kim, ne zaman, önce/sonra).
+- Tip-alan eşleme değişiklikleri mevcut kartların snapshot etiket/birim değerlerini değiştirmez.
+
+SEKME 4: METİN İSTİSNALARI
+- Kısaltma/marka yazımı listesi: ekle, düzenle, sil. Karşılaştırma büyük/küçük harfe duyarsız, çıktı listedeki yazımla. Yeni istisna sonraki girişlerde uygulanır; geriye dönük değişiklik yapmaz.
+
+TEKNİK ŞARTLAR
+- Mevcut stack ve kod stiline uy. Migration gerekiyorsa geri alınabilir olsun. Mevcut veriyi bozma.
+- Her adımda: ne değişti, hangi dosyalar, nasıl test edilir. Kısa yaz.
+
+TEST SENARYOLARI (yaz ve çalıştır)
+1. "Çorap" tipini Apparel altına ekle; Apparel alanlarını miras aldığını doğrula. Kütüphaneye çorap boyu (select: patik, kısa, uzun), numara aralığı (text), dikişsiz (bool), takviye bölgesi (multi: topuk, burun) alanlarını ekle, Çorap'a eşle. "Ürün ekle" listesinde Çorap görünür, form doğru alanlarla açılır.
+2. "Corap" adında ikinci tip eklemeyi dene: benzer tip uyarısı verir.
+3. Kartı olan bir tipi silmeyi dene: engellenir, pasif yapılır; pasif tip "Ürün ekle" listesinde çıkmaz, mevcut kartlar açılır.
+4. Kullanılan bir alanın veri tipini/birimini değiştirmeyi dene: engellenir.
+5. Kullanılan bir select seçeneğini silmeyi dene: engellenir, pasif yapılabilir.
+6. Bir alanı tipten çıkar: mevcut kartlardaki değer kaybolmaz, yeni kartlarda görünmez.
+7. Yönetici olmayan kullanıcı ekrana erişemez ve API'den değişiklik yapamaz.
+8. Sistem alanlarının silme/düzenleme denemesi reddedilir.
+
+ADIM SIRASI (her adım sonunda dur)
+1. Mevcut yapı incelemesi + plan (yetki modeli, menü yeri, kullanım sayısı sorguları)
+2. Ürün tipleri sekmesi + kurallar
+3. Alan kütüphanesi sekmesi + kurallar
+4. Tip-alan eşlemesi sekmesi + miras + etki önizlemesi
+5. Metin istisnaları sekmesi
+6. Denetim kaydı + yetki kontrolü (backend)
+7. Testler (yukarıdaki senaryolar) ve geriye dönük uyumluluk kontrolü

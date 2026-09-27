@@ -1,0 +1,64 @@
+Rol: Kıdemli full-stack geliştirici. Görev: Mevcut CRM projesine "dinamik ürün kartı" modülü ekle.
+
+EKLİ REFERANS: urun-karti-ornek.html (çalışan arayüz prototipi). UI davranışı, alan grupları, kilit kuralları ve akışlar için birebir referans al. Prototip verileri bellekte tutuyor; gerçek uygulamada veritabanına kalıcı yaz.
+
+ÖNCE: Projenin mevcut yapısını incele (stack, veritabanı, proje/teklif modelleri, UI kütüphanesi, auth/yetki). Hiçbir şeyi değiştirmeden kısa bir özet ve uygulama planı sun; onayımı bekle. Onaydan sonra adım adım ilerle, her adım sonunda dur ve onay iste. Yeni bağımlılık eklemeden önce sor.
+
+AMAÇ
+Bir projede ürün eklerken seçilen ürün tipine göre detay alanları dinamik gelsin. Ürünler proje içinde kart olarak listelensin, karta tıklayınca yan panelde (drawer) detaylar açılsın. Listede olmayan ürünler için "Manuel / Diğer" tipi ve serbest ek alanlar desteklensin.
+
+VERİ MODELİ (öznitelik tabanlı; ürün tipi başına sütun/tablo YOK)
+1. product_types: id, ad, parent_id (ağaç), aktif. Alt tip, üst tipin alanlarını miras alır; alt tip zorunluluğu ezebilir.
+2. attribute_definitions (global kütüphane): id, key, etiket, veri_tipi (text, number, select, multi, bool, blend), birim, seçenekler, min/max, grup, arşivli
+3. product_type_attributes: product_type_id, attribute_id, zorunlu, sıra
+4. project_products (kart): id, project_id, product_type_id (değiştirilemez), ad, durum (taslak | teklife_hazir), ortak blok alanları: fiyat, teslim_tarihi, incoterm, odeme_kosulu, ambalaj, adet_koli, numune_durumu
+5. project_product_dist: kart_id, etiket (beden/ölçü/varyant), adet
+6. project_product_values: kart_id, attribute_id, değer (JSON), etiket_snapshot, birim_snapshot
+7. project_product_custom_fields: kart_id, etiket, değer, birim
+8. Proje tablosunda para birimi (proje düzeyinde tek).
+
+ALAN GRUPLARI (seed, migration/seed dosyasıyla; koda gömme; yönetim ekranından düzenlenebilir)
+- Kumaş: elyaf karışımı (blend: elyaf + %, toplam %100), kumaş yapısı, gramaj (gr/m²), tel sayısı, sertifikalar (OEKO-TEX, GOTS, BCI)
+- Ölçü: ölçü (en x boy, cm), kalıp
+- Renk: renk (Pantone/numune), baskı/nakış tipi
+- Konstrüksiyon: kenar/dikiş tipi, bitim işlemleri (çoklu seçim)
+- Marka: private label, logo yeri/ölçüsü, etiket tipi
+- Test: kalite standardı (AQL), çekme toleransı (%)
+Seed ürün tipleri: Ev Tekstili (Havlu, Nevresim, Bornoz), Apparel (Tişört, Sweatshirt), Promosyon Tekstil, Manuel / Diğer. Havlu/Nevresim/Tişört vb. için hangi alanın zorunlu olduğu prototipteki T ve A tanımlarından alınsın.
+
+ORTAK BLOK (her tipte sabit): adet dağılımı satırları + otomatik toplam, hedef birim fiyat, teslim tarihi, incoterm, ödeme koşulu, ambalaj tipi, adet/koli, numune durumu.
+
+UI (prototipe uy)
+- Proje içinde "Ürünler" sekmesi: kart grid. Kart özeti: ad, tip rozeti, toplam adet, ölçü/beden, renk, hedef fiyat, durum rozeti (Taslak / Teklife hazır). Üstte toplam ürün ve toplam adet.
+- "Ürün ekle" modalı: ad + tip seçimi (Ev Tekstili / Apparel / Diğer gruplarıyla). Tipin sonradan değişmeyeceği uyarısı görünür. Oluşturunca drawer açılır.
+- Drawer bölümleri: Genel, Adet ve dağılım, Ticari ve lojistik, tipe özel gruplar (Kumaş, Ölçü, Renk...), Ek alanlar (serbest). Bölümler akordeon.
+- Eksik zorunlu alanlar drawer üstünde uyarı olarak listelenir.
+- "Kopyala": modal açılır, yeni tip seçilebilir; yalnızca yeni tipte de bulunan alan değerleri taşınır, ortak blok ve ek alanlar tamamen taşınır.
+- Yönetim ekranı: ürün tipleri, alan kütüphanesi, tip-alan eşlemesi.
+
+KİLİT VE DOĞRULAMA (zorunlu; hem UI hem backend'de uygula)
+- Ürün tipi kart oluşturulduktan sonra read-only (API de reddetsin). Değişiklik yalnızca kopyala + yeni tip ile.
+- Para birimi proje düzeyinde, kartta değiştirilemez.
+- Birimler alan tanımından gelir, kartta düzenlenemez.
+- Toplam adet dağılım satırlarından hesaplanır, elle değiştirilemez.
+- Elyaf karışımı toplamı %100 olmalı, aksi halde "Teklife hazır"a geçemez.
+- Zorunlu alan, toplam adet > 0, fiyat > 0 ve teslim tarihi eksikse "Teklife hazır" butonu pasif.
+- Teklife hazır durumdayken herhangi bir alan değişir ve doğrulama bozulursa kart otomatik "Taslak"a döner.
+- Alan tanımı silinemez, yalnızca arşivlenir. Eski kartlar snapshot etiket/birimle görünmeye devam eder.
+- Sayısal alanlarda min/max doğrulaması.
+- Dağılımda en az 1 satır kalmalı.
+
+TEKNİK ŞARTLAR
+- Mevcut stack ve kod stiline uy. Migration'lar geri alınabilir olsun.
+- Mevcut proje/teklif verilerini bozma; mevcut ürün kayıtları varsa önce migration planı sun.
+- Yetki: kim ürün ekleyebilir/düzenleyebilir, mevcut rol yapısına göre öner.
+- Her adımda: ne değişti, hangi dosyalar, nasıl test edilir. Kısa yaz.
+
+ADIM SIRASI (her adım sonunda dur)
+1. Kod incelemesi + plan
+2. Veri modeli + migration + seed
+3. Yönetim ekranı (tip, alan, eşleme)
+4. Ürün ekleme modalı + dinamik form
+5. Kart listesi + drawer + ek alanlar
+6. Doğrulama, kilit kuralları, durum geçişleri, kopyalama
+7. Test ve geriye dönük uyumluluk kontrolü

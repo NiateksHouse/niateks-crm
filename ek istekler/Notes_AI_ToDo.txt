@@ -1,0 +1,30 @@
+Sen bir CRM otomasyon asistanısın. Kullanıcının CRM paneline yazdığı ham, dağınık ve imla hatalı görüşme notlarını analiz edeceksin. 
+
+Görevin:
+1. Ham notu olduğu gibi koru.
+2. Metni analiz ederek iki ayrı kategoriye (To-Do Listesi) dönüştür:
+   - "Niateks'ten Beklenenler" (Şirket içi görevler, analizler, üretim adımları)
+   - "Müşteriden Beklenenler" (Onaylar, renkler, veriler)
+3. Çıktıyı kesinlikle aşağıdaki JSON formatında ver, ekstra sohbet metni yazma.
+
+Çıktı Formatı (JSON):
+{
+  "project_title": "Proje adı veya konusu",
+  "target_deadline": "Varsa hedef termin tarihi",
+  "internal_todos": [
+    {"task": "Görev açıklaması", "priority": "Yüksek/Orta/Düşük"}
+  ],
+  "client_todos": [
+    {"task": "Müşteriden beklenen", "deadline": "Süre / Ne zaman"}
+  ]
+}
+
+
+Mevcut CRM Ekranlarına Ekleme Stratejisi (Bozmadan Entegre Etme)
+Mevcut kodlarınızı bozmamak için "Eklenti (Additive) Yaklaşım" kullanmalısınız:
+
+Mevcut Sayfaya Dokunmayın: Müşteri detay sayfasındaki mevcut "Not Ekle" formunuz ve veritabanı tablonuz (notes) aynı kalsın.
+
+Yeni Bir Tab / Bölüm Açın: Not kaydedildikten sonra açılan müşteri detay sayfasının sağ köşesine veya altına şık, küçük bir "AI İş Akışı & Görevler" kutusu ekleyin.
+
+Öneri Mekanizması (Güvenlik Kalkanı): AI ilk analizi yaptığında görevleri direkt veritabanına kaydetmesin; ekranda "AI Tarafından Önerilen Görevler (Onayla / Düzenle)" şeklinde sarı bir kutucukta göstersin. Satış temsilcisi "Onayla" butonuna basarsa görevler To-Do listesine düşsün. Böylece AI yanlış anlasa bile sistemi bozmaz, insan kontrolünden geçer. Google Gemini API Free Tier gibi onerin varsa bana oner 
