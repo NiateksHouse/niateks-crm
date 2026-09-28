@@ -638,9 +638,22 @@ function captcha_svg($code) {
     return $svg . '</svg>';
 }
 
+// CRM'e erisilen adresi istege gore turet: sabit domain GOMME — mail linki hangi ortamdan
+// (koza / koza-dev / local) gelindiyse o adresi gosterir. Admin override: $NX_MAIL['base_url'].
+function nx_base_url() {
+    if (!empty($GLOBALS['NX_MAIL']['base_url'])) return rtrim((string)$GLOBALS['NX_MAIL']['base_url'], '/') . '/';
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+        || (($_SERVER['SERVER_PORT'] ?? '') === '443');
+    $scheme = $https ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($host === '') return 'https://koza.niateks.com/'; // CLI (surum raporu vb.): varsayilan canli
+    return $scheme . '://' . $host . '/';
+}
+
 // Kullanici karsilama / gecici sifre maili (hesap olusturma ve 'sifremi unuttum' ortak sablon).
 function pw_welcome_mail($name, $idn, $pw, $forgot = false) {
-    $host = 'https://koza.niateks.com/';
+    $host = nx_base_url();
     return '<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#f3eee4;border-radius:12px">'
         . '<h2 style="color:#232b18;margin:0 0 4px">Niateks House CRM</h2>'
         . '<p style="color:#5a5344;margin:0 0 16px">Merhaba ' . htmlspecialchars($name) . ',</p>'
