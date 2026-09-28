@@ -12,6 +12,10 @@ Not: 1.9.0 öncesi sürümler iki haneli şemayla (V1.0–V1.9) çıktı; SemVer
 
 
 
+
+## [1.11.0] - 2026-09-28
+- Proje & Teklif Yonetimi modulu: 7 asamali proje pipeline (tiklanabilir asama seridi, red nedeni diyalogu, kazan Referans alani, kapanmis proje arsiv modu), revizyonlu teklif uretimi (NX-YYYY-NNNN.Rn, indirim + not, eski revizyonlar arsivde), teklif PDF onizleme ve A4 Yazdir/PDF cikti, Projeler ekranina 7 sutunlu kanban + surukle-birak + acik/kapanmis filtresi + liste gecisi, urune bagli gorsel (project_images.product_id; 0=proje geneli) ve cekmecede Gorseller bolumu; KRITIK DÜZELTME: bos vals JSON [] dondugunden ilk alan doldurmasi kayboluyordu (object cast + istemci normalizasyonu), canli Toplam adet hesabi, teklif panelinin urun hazir olunca tazelenmesi; api: /api/projects/stage, /api/quotes GET/POST, projects stage/lost_*/won_* kolonlari + project_quotes tablosu + migration, 47 API testi
+- Paket: Versiyon/Niateks_CRM_v1.11.0.zip
 ## [1.10.1] - 2026-09-28
 - Giris ekrani ince ayar: kart seffaflastirildi ve bulaniklik azaltildi (fotograf net gorunur), yazı okunabilirliği için gölgeler güçlendirildi, sitede acilis animasyonu eklendi (kart kapı gibi acilir, motion azaltma tercihinde devre disi), captcha satiri yeniden dizayn edildi (esit yükseklikli kutu + yenile + giriş alanı)
 - Paket: Versiyon/Niateks_CRM_v1.10.1.zip
