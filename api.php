@@ -157,6 +157,11 @@ function db() {
         type TEXT NOT NULL DEFAULT 'Numune',
         currency TEXT NOT NULL DEFAULT 'USD',
         note TEXT NOT NULL DEFAULT '',
+        stage TEXT NOT NULL DEFAULT 'Proje Açıldı',
+        lost_reason TEXT NOT NULL DEFAULT '',
+        lost_note TEXT NOT NULL DEFAULT '',
+        won_date TEXT NOT NULL DEFAULT '',
+        won_ref TEXT NOT NULL DEFAULT '',
         created_at INTEGER NOT NULL, created_by INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS project_steps(
@@ -170,6 +175,7 @@ function db() {
     CREATE TABLE IF NOT EXISTS project_images(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL DEFAULT 0,
         file TEXT NOT NULL,
         orig_name TEXT NOT NULL DEFAULT '',
         caption TEXT NOT NULL DEFAULT '',
@@ -178,6 +184,20 @@ function db() {
         deleted INTEGER NOT NULL DEFAULT 0
     );
     CREATE INDEX IF NOT EXISTS pimgs_p ON project_images(project_id);
+    CREATE TABLE IF NOT EXISTS project_quotes(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        rev INTEGER NOT NULL DEFAULT 1,
+        quote_date TEXT NOT NULL DEFAULT '',
+        discount REAL NOT NULL DEFAULT 0,
+        note TEXT NOT NULL DEFAULT '',
+        currency TEXT NOT NULL DEFAULT 'USD',
+        lines TEXT NOT NULL DEFAULT '',
+        total_gross REAL NOT NULL DEFAULT 0,
+        total_net REAL NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL, created_by INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS pquotes_p ON project_quotes(project_id);
     CREATE TABLE IF NOT EXISTS product_types(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -251,6 +271,7 @@ function db() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
         deal_id INTEGER NOT NULL DEFAULT 0,
+        project_id INTEGER NOT NULL DEFAULT 0,
         type TEXT NOT NULL DEFAULT 'Not',
         text TEXT NOT NULL,
         owner_id INTEGER NOT NULL,
@@ -286,6 +307,22 @@ if (!in_array('currency', $pcols, true)) db()->exec("ALTER TABLE projects ADD CO
 // users.must_change (gecici sifreyle giriste sifre degistirtme zorunlulugu) — eski kurulumlarda
 $ucols = array_column(db()->query('PRAGMA table_info(users)')->fetchAll(), 'name');
 if (!in_array('must_change', $ucols, true)) db()->exec("ALTER TABLE users ADD COLUMN must_change INTEGER NOT NULL DEFAULT 0");
+// notes.project_id (gorusmelerin projeye baglanmasi) — eski kurulumlarda
+$ncols = array_column(db()->query('PRAGMA table_info(notes)')->fetchAll(), 'name');
+if (!in_array('project_id', $ncols, true)) db()->exec("ALTER TABLE notes ADD COLUMN project_id INTEGER NOT NULL DEFAULT 0");
+db()->exec("CREATE INDEX IF NOT EXISTS notes_p ON notes(project_id)");
+// projects.stage + kayip/kazanim alanlari (7 asamali proje pipeline) — eski kurulumlarda
+$pcols = array_column(db()->query('PRAGMA table_info(projects)')->fetchAll(), 'name');
+if (!in_array('stage', $pcols, true)) db()->exec("ALTER TABLE projects ADD COLUMN stage TEXT NOT NULL DEFAULT 'Proje Açıldı'");
+if (!in_array('lost_reason', $pcols, true)) db()->exec("ALTER TABLE projects ADD COLUMN lost_reason TEXT NOT NULL DEFAULT ''");
+if (!in_array('lost_note', $pcols, true)) db()->exec("ALTER TABLE projects ADD COLUMN lost_note TEXT NOT NULL DEFAULT ''");
+if (!in_array('won_date', $pcols, true)) db()->exec("ALTER TABLE projects ADD COLUMN won_date TEXT NOT NULL DEFAULT ''");
+if (!in_array('won_ref', $pcols, true)) db()->exec("ALTER TABLE projects ADD COLUMN won_ref TEXT NOT NULL DEFAULT ''");
+db()->exec("CREATE INDEX IF NOT EXISTS projects_stage ON projects(stage)");
+// project_images.product_id (gorselin urun kartina baglanmasi; 0 = proje geneli) — eski kurulumlarda
+$icols = array_column(db()->query('PRAGMA table_info(project_images)')->fetchAll(), 'name');
+if (!in_array('product_id', $icols, true)) db()->exec("ALTER TABLE project_images ADD COLUMN product_id INTEGER NOT NULL DEFAULT 0");
+db()->exec("CREATE INDEX IF NOT EXISTS pimgs_prod ON project_images(product_id)");
 
 // ---------- urun modulu seed (bir kez) ----------
 function seed_products_if_empty() {
@@ -465,6 +502,13 @@ const COMPANY_STATUS = ['Aday', 'Aktif müşteri', 'Pasif'];
 const SOURCES = ['Referans', 'Fuar', 'Web sitesi', 'E-posta', 'Telefon', 'İş ortağı', 'Diğer'];
 const PROJECT_TYPES = ['Numune', 'Sipariş', 'İç geliştirme'];
 const NOTE_TYPES = ['E-posta', 'Telefon', 'Toplantı', 'Fuar', 'WhatsApp', 'Not'];
+// Sistem notu: istemciden gelen "type" olarak KABUL EDILMEZ (NOTE_TYPES'a eklenmez),
+// yalnizca sunucu icinde uretilir (ornek: "Yeni proje acildi").
+const SYS_NOTE = 'Sistem';
+// Proje (teklif) pipeline asamalari — deals.stage'den bagimsiz calisir
+const PROJECT_STAGES = ['Proje Açıldı', 'Görüşülüyor', 'Teklif Hazırlandı', 'Teklif Gönderildi', 'Bilgi Bekleniyor', 'Teklif Kabul Edildi', 'Teklif Reddedildi'];
+const PROJECT_CLOSED = ['Teklif Kabul Edildi', 'Teklif Reddedildi'];
+const PROJECT_LOST_REASONS = ['Fiyat yüksek', 'Teslim süresi uzun', 'Rakip firma tercihi', 'Numune onaylanmadı', 'Teknik yetersizlik', 'Bütçe iptali'];
 const CURRENCIES = ['USD', 'EUR', 'TRY'];
 const ROLES = ['manager', 'agent'];
 const PALETTE = ['#204e40', '#a16627', '#526b89', '#8f4a6a', '#7a6a3f', '#5a7d5a', '#6b5b95', '#b5651d', '#2f6f6f'];
@@ -643,10 +687,13 @@ if (!defined('NX_UPLOADS')) define('NX_UPLOADS', NX_DATA . '/uploads');
 if (!is_dir(NX_UPLOADS)) @mkdir(NX_UPLOADS, 0775, true);
 @file_put_contents(NX_UPLOADS . '/.htaccess', "Require all denied\n");
 function img_ext_ok($name) { $e = strtolower(pathinfo($name, PATHINFO_EXTENSION)); return in_array($e, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true); }
-function project_images_list($pid) {
-    $rows = qa('SELECT id, file, orig_name, caption, created_at, created_by FROM project_images WHERE project_id=? AND deleted=0 ORDER BY id', [(int)$pid]);
+function project_images_list($pid, $product_id = null) {
+    $w = 'project_id=? AND deleted=0'; $a = [(int)$pid];
+    if ($product_id !== null) { $w .= ' AND product_id=?'; $a[] = (int)$product_id; }
+    $rows = qa('SELECT id, project_id, product_id, file, orig_name, caption, created_at, created_by FROM project_images WHERE ' . $w . ' ORDER BY id', $a);
     $umap = []; foreach (qa('SELECT id, name FROM users') as $x) $umap[(int)$x['id']] = $x['name'];
-    return array_map(fn($r) => ['id' => (int)$r['id'], 'file' => $r['file'], 'orig_name' => $r['orig_name'], 'caption' => $r['caption'],
+    return array_map(fn($r) => ['id' => (int)$r['id'], 'project_id' => (int)$r['project_id'], 'product_id' => (int)$r['product_id'],
+        'file' => $r['file'], 'orig_name' => $r['orig_name'], 'caption' => $r['caption'],
         'created_at' => (int)$r['created_at'], 'created_by_name' => $umap[(int)$r['created_by']] ?? '—'], $rows);
 }
 
@@ -701,6 +748,27 @@ function can_see_company($u, $company_id) {
     if (!$c) return false;
     $row = q1('SELECT owner_id, created_by FROM companies WHERE id=?', [(int)$company_id]);
     return (int)$row['owner_id'] === (int)$u['id'] || (int)$row['created_by'] === (int)$u['id'];
+}
+
+// ---------- deals: ortak olusturma ----------
+// Hem /api/deals POST hem "Proje Ac" akisi bu fonksiyonu kullanir.
+function deal_create($u, $b, $defaultStage = 'İhtiyaç') {
+    $cid = (int)($b['company_id'] ?? 0);
+    if (!valid_id($cid) || !can_see_company($u, $cid)) j(400, ['error' => 'Geçerli bir müşteri seçin.']);
+    $title = s($b['title'] ?? '', 160);
+    if ($title === '') j(400, ['error' => 'Fırsat adını girin.']);
+    $value = (float)($b['value'] ?? 0);
+    if ($value < 0) j(400, ['error' => 'Geçerli bir tutar girin.']);
+    $cur = in_scalar($b['currency'] ?? '', CURRENCIES) ? $b['currency'] : 'USD';
+    $stage = in_scalar($b['stage'] ?? '', STAGES) ? $b['stage'] : (in_scalar($defaultStage, STAGES) ? $defaultStage : 'İhtiyaç');
+    $owner = ($u['role'] === 'manager' && valid_id($b['owner_id'] ?? 0)) ? (int)$b['owner_id'] : (int)$u['id'];
+    $close = valid_date($b['close_date'] ?? '') ? $b['close_date'] : day_offset(14);
+    qx('INSERT INTO deals(company_id,title,value,currency,stage,owner_id,close_date,note,reference,created_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+        [$cid, $title, $value, $cur, $stage, $owner, $close, s($b['note'] ?? '', 2000), s($b['reference'] ?? '', 120), time(), (int)$u['id']]);
+    $id = (int)db()->lastInsertId();
+    write_log('deal_add', $u, $title . ' (' . $value . ' ' . $cur . ')');
+    add_activity((int)$u['id'], $title . ' fırsatı oluşturuldu.');
+    return $id;
 }
 
 // ---------- routing ----------
@@ -1035,15 +1103,7 @@ if ($path === '/api/deals' && $method === 'POST') {
     if ($title === '') j(400, ['error' => 'Fırsat adını girin.']);
     $value = (float)($b['value'] ?? 0);
     if ($value < 0) j(400, ['error' => 'Geçerli bir tutar girin.']);
-    $cur = in_scalar($b['currency'] ?? '', CURRENCIES) ? $b['currency'] : 'USD';
-    $stage = in_scalar($b['stage'] ?? '', STAGES) ? $b['stage'] : 'İhtiyaç';
-    $owner = ($u['role'] === 'manager' && valid_id($b['owner_id'] ?? 0)) ? (int)$b['owner_id'] : (int)$u['id'];
-    $close = valid_date($b['close_date'] ?? '') ? $b['close_date'] : day_offset(14);
-    qx('INSERT INTO deals(company_id,title,value,currency,stage,owner_id,close_date,note,reference,created_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
-        [$cid, $title, $value, $cur, $stage, $owner, $close, s($b['note'] ?? '', 2000), s($b['reference'] ?? '', 120), time(), (int)$u['id']]);
-    $id = (int)db()->lastInsertId();
-    write_log('deal_add', $u, $title . ' (' . $value . ' ' . $cur . ')');
-    add_activity((int)$u['id'], $title . ' fırsatı oluşturuldu.');
+    $id = deal_create($u, $b);
     j(200, ['ok' => true, 'id' => $id]);
 }
 
@@ -1245,10 +1305,21 @@ if ($path === '/api/projects' && $method === 'GET') {
             if (!$own && !$compOk && (int)$p['company_id'] !== 0) continue;
         }
         $steps = qa('SELECT id, title, done, ord FROM project_steps WHERE project_id=? ORDER BY ord, id', [(int)$p['id']]);
+        $qs = q1('SELECT COUNT(*) c, COALESCE(MAX(rev),0) r FROM project_quotes WHERE project_id=?', [(int)$p['id']]);
+        $last = q1('SELECT total_net, currency, quote_date FROM project_quotes WHERE project_id=? ORDER BY rev DESC LIMIT 1', [(int)$p['id']]);
+        $ready = (int)(q1('SELECT COUNT(*) c FROM project_products WHERE project_id=? AND status=?', [(int)$p['id'], 'teklife_hazir'])['c'] ?? 0);
+        $pall = (int)(q1('SELECT COUNT(*) c FROM project_products WHERE project_id=?', [(int)$p['id']])['c'] ?? 0);
         $out[] = [
             'id' => (int)$p['id'], 'name' => $p['name'], 'company_id' => (int)$p['company_id'],
+            'created_at' => (int)$p['created_at'],
             'deal_id' => (int)$p['deal_id'], 'owner' => $umap[(int)$p['owner_id']]['name'] ?? '—', 'owner_id' => (int)$p['owner_id'],
             'due_date' => $p['due_date'], 'type' => $p['type'], 'note' => $p['note'], 'currency' => $p['currency'] ?? 'USD',
+            'stage' => $p['stage'] ?: 'Proje Açıldı', 'lost_reason' => $p['lost_reason'] ?? '', 'lost_note' => $p['lost_note'] ?? '',
+            'won_date' => $p['won_date'] ?? '', 'won_ref' => $p['won_ref'] ?? '',
+            'quote_count' => (int)$qs['c'], 'quote_rev' => (int)$qs['r'],
+            'quote_net' => $last ? (float)$last['total_net'] : 0.0, 'quote_currency' => $last ? $last['currency'] : ($p['currency'] ?? 'USD'),
+            'quote_date' => $last ? $last['quote_date'] : '',
+            'products_ready' => $ready, 'products_total' => $pall,
             'steps' => array_map(fn($s) => ['id' => (int)$s['id'], 'title' => $s['title'], 'done' => (bool)$s['done']], $steps),
         ];
     }
@@ -1265,6 +1336,18 @@ if ($path === '/api/projects' && $method === 'POST') {
     $owner = valid_id($b['owner_id'] ?? 0) ? (int)$b['owner_id'] : (int)$u['id'];
     $due = valid_date($b['due_date'] ?? '') ? $b['due_date'] : day_offset(14);
     $did = (int)($b['deal_id'] ?? 0);
+    // "Proje Ac": tek buton, arka planda iki kayit (firsat + proje).
+    // Once firsat acilir, sonra proje ona baglanir; kullanici iki form doldurmaz.
+    $dealTitle = s($b['deal_title'] ?? '', 160);
+    if ($dealTitle !== '') {
+        if (!$cid) j(400, ['error' => 'Fırsat açmak için geçerli bir müşteri seçin.']);
+        $did = deal_create($u, [
+            'company_id' => $cid,
+            'title' => $dealTitle,
+            'value' => (float)($b['deal_value'] ?? 0),
+            'currency' => $b['deal_currency'] ?? 'USD',
+        ], 'Teklif hazırlanıyor');
+    }
     if ($did) {
         $d = q1('SELECT company_id FROM deals WHERE id=?', [$did]);
         if (!$d || !can_see_company($u, $d['company_id'])) j(400, ['error' => 'Geçerli bir fırsat seçin.']);
@@ -1278,9 +1361,16 @@ if ($path === '/api/projects' && $method === 'POST') {
     $tpl = $type === 'Numune' ? ['Teknik ihtiyaç doğrulama', 'Numune hazırlama', 'İç kalite kontrolü', 'Gönderim ve müşteri onayı'] : ['Planlama', 'Uygulama', 'Kontrol', 'Teslim'];
     $i = 0;
     foreach ($tpl as $t) { qx('INSERT INTO project_steps(project_id,title,ord) VALUES(?,?,?)', [$id, $t, $i++]); }
-    write_log('project_add', $u, $name, 'project', (int)db()->lastInsertId(), $name);
+    write_log('project_add', $u, $name, 'project', $id, $name);
     add_activity((int)$u['id'], $name . ' projesi oluşturuldu.');
-    j(200, ['ok' => true, 'id' => $id]);
+    if ($dealTitle !== '') {
+        // Firma zaman cizelgesine sistem ayraci: "Yeni proje acildi: ..."
+        qx('INSERT INTO notes(company_id,deal_id,project_id,type,text,owner_id,note_date,created_at) VALUES(?,?,?,?,?,?,?,?)',
+            [$cid, $did, $id, SYS_NOTE, 'Yeni proje açıldı: ' . $name, (int)$u['id'], today(), time()]);
+        write_log('project_deal_add', $u, 'Proje ve fırsat birlikte açıldı: ' . $name, 'project', $id, $name);
+        add_activity((int)$u['id'], $name . ' için fırsat açıldı.');
+    }
+    j(200, ['ok' => true, 'id' => $id, 'deal_id' => $did]);
 }
 
 if ($path === '/api/projects/update' && $method === 'POST') {
@@ -1347,6 +1437,12 @@ if ($path === '/api/projects/images' && $method === 'POST') {
     if (!$p) j(404, ['error' => 'Proje bulunamadı.']);
     if ($u['role'] !== 'manager' && (int)$p['owner_id'] !== (int)$u['id'] && (int)$p['created_by'] !== (int)$u['id']) j(403, ['error' => 'Bu projeye dosya ekleme yetkiniz yok.']);
     if (empty($_FILES['files'])) j(400, ['error' => 'Dosya seçilmedi.']);
+    // Gorsel istege bagli olarak bir urun kartina baglanir (0 = proje geneli).
+    $imgProduct = (int)($_POST['product_id'] ?? 0);
+    if ($imgProduct) {
+        $pr = q1('SELECT id FROM project_products WHERE id=? AND project_id=?', [$imgProduct, $pid]);
+        if (!$pr) j(400, ['error' => 'Geçerli bir ürün seçin.']);
+    }
     $files = $_FILES['files'];
     $n = count($files['name']);
     $ok = 0; $errors = [];
@@ -1364,7 +1460,7 @@ if ($path === '/api/projects/images' && $method === 'POST') {
         $dest = NX_UPLOADS . '/' . $stored;
         if (!move_uploaded_file($files['tmp_name'][$i], $dest)) { $errors[] = $orig . ': sunucuya yazılamadı'; continue; }
         @chmod($dest, 0644);
-        qx('INSERT INTO project_images(project_id,file,orig_name,created_at,created_by) VALUES(?,?,?,?,?)', [$pid, $stored, s($orig, 160), time(), (int)$u['id']]);
+        qx('INSERT INTO project_images(project_id,product_id,file,orig_name,created_at,created_by) VALUES(?,?,?,?,?,?)', [$pid, $imgProduct, $stored, s($orig, 160), time(), (int)$u['id']]);
         $ok++;
     }
     write_log('project_images_add', $u, $p['name'] . ': ' . $ok . ' görsel eklendi' . ($errors ? ' (' . count($errors) . ' hata)' : ''), 'project', $pid, $p['name']);
@@ -1406,7 +1502,9 @@ if ($path === '/api/projects/images' && $method === 'GET') {
     $pid = (int)($_GET['project_id'] ?? 0);
     $p = q1('SELECT * FROM projects WHERE id=?', [$pid]);
     if (!$p) j(404, ['error' => 'Proje bulunamadı.']);
-    j(200, ['images' => project_images_list($pid)]);
+    // product_id verilmezse tum gorseller; 0 verilirse proje geneli gorseller; >0 ise o urunun gorselleri.
+    $flt = array_key_exists('product_id', $_GET) ? (int)$_GET['product_id'] : null;
+    j(200, ['images' => project_images_list($pid, $flt), 'filter' => $flt]);
 }
 
 // ---------- urun modulu (dinamik urun kartlari) ----------
@@ -1462,15 +1560,68 @@ function product_row($p, $attrs = null) {
         'price' => (float)$p['price'], 'delivery_date' => $p['delivery_date'], 'incoterm' => $p['incoterm'],
         'payment_term' => $p['payment_term'], 'packaging' => $p['packaging'], 'per_box' => (int)$p['per_box'],
         'sample_status' => $p['sample_status'], 'dist' => array_map(fn($d) => ['id' => (int)$d['id'], 'label' => $d['label'], 'qty' => (int)$d['qty']], $dist),
-        'total_qty' => $total, 'vals' => $vals, 'custom' => $custom, 'attrs' => $attrs];
+        // NOT: (object) cast sart — bos dizi JSON'da [] olur ve istemci onu
+        // nesne yerine dizi sanip ilk alan doldurmasini sessizce kaybeder.
+        'total_qty' => $total, 'vals' => (object)$vals, 'custom' => $custom, 'attrs' => (object)$attrs];
+}
+// ---------- teklif (revizyonlu) yardimcilari ----------
+function project_quote_lines($pid) {
+    // Teklife giren satirlar: yalnizca "teklife hazir" urun kartlari.
+    $out = [];
+    foreach (qa('SELECT * FROM project_products WHERE project_id=? AND status=? ORDER BY id', [(int)$pid, 'teklife_hazir']) as $p) {
+        $r = product_row($p);
+        $v = (array)$r['vals'];
+        $spec = trim((string)($v['size'] ?? '') . (((string)($v['size'] ?? '') !== '' && (string)($v['color'] ?? '') !== '') ? ' · ' : '') . (string)($v['color'] ?? ''));
+        if ($spec === '') {
+            foreach ($r['custom'] as $c) {
+                if ($c['label'] !== '' && $c['value'] !== '') { $spec = $c['label'] . ': ' . $c['value'] . ($c['unit'] !== '' ? ' ' . $c['unit'] : ''); break; }
+            }
+        }
+        $dist = [];
+        foreach ($r['dist'] as $d) if ((int)$d['qty'] > 0) $dist[] = $d['label'] . ' ' . number_format((int)$d['qty'], 0, ',', '.');
+        $packing = trim((string)$r['packaging'] . ((int)$r['per_box'] > 0 ? ' · ' . (int)$r['per_box'] . ' adet/koli' : ''));
+        $out[] = [
+            'product_id' => (int)$p['id'], 'name' => $r['name'], 'type_name' => $r['type_name'],
+            'qty' => (int)$r['total_qty'], 'unit' => 'adet', 'spec' => $spec, 'dist' => implode(' · ', $dist),
+            'packing' => $packing, 'incoterm' => $r['incoterm'], 'delivery_date' => $r['delivery_date'],
+            'price' => (float)$r['price'], 'total' => (int)$r['total_qty'] * (float)$r['price'],
+        ];
+    }
+    return $out;
+}
+function quote_totals($lines, $discount) {
+    $gross = 0.0;
+    foreach ($lines as $l) $gross += (float)$l['total'];
+    $rate = max(0, min(40, (float)$discount));
+    return ['gross' => $gross, 'discount' => $gross * $rate / 100, 'net' => $gross * (1 - $rate / 100), 'rate' => $rate];
+}
+function quote_no($proj, $rev) {
+    $y = $proj['created_at'] ? date('Y', (int)$proj['created_at']) : date('Y');
+    return 'NX-' . $y . '-' . str_pad((string)((int)$proj['id'] % 10000), 4, '0', STR_PAD_LEFT) . '.R' . (int)$rev;
+}
+function quote_row($q) {
+    return ['id' => (int)$q['id'], 'rev' => (int)$q['rev'], 'date' => $q['quote_date'], 'discount' => (float)$q['discount'],
+        'note' => $q['note'], 'currency' => $q['currency'], 'lines' => json_decode($q['lines'] ?: '[]', true) ?: [],
+        'total_gross' => (float)$q['total_gross'], 'total_net' => (float)$q['total_net'], 'created_at' => (int)$q['created_at']];
+}
+function can_edit_project($u, $proj) {
+    if ($u['role'] === 'manager') return true;
+    return (int)$proj['owner_id'] === (int)$u['id'] || (int)$proj['created_by'] === (int)$u['id'];
+}
+function project_missing_for_quote($pid) {
+    // Teklife girmeyen (taslak) urunleri isimleriyle dondurur.
+    $out = [];
+    foreach (qa('SELECT * FROM project_products WHERE project_id=? AND status<>? ORDER BY id', [(int)$pid, 'teklife_hazir']) as $p) $out[] = $p['name'];
+    return $out;
 }
 function product_missing($p) {
     // Teklife hazir icin eksikleri hesapla (backend dogrulamasi).
     $m = [];
+    $vals = (array)$p['vals'];
     $attrs = $p['attrs'];
     foreach ($attrs as $k => $a) {
         if (!$a['required']) continue;
-        $v = $p['vals'][$k] ?? null;
+        $v = $vals[$k] ?? null;
         if ($a['dtype'] === 'blend') {
             $sum = 0; if (is_array($v)) foreach ($v as $r) $sum += (float)($r['p'] ?? 0);
             if (!is_array($v) || !count($v) || (int)round($sum) !== 100) $m[] = $a['label'] . ' (toplam %100 olmalı)';
@@ -1659,6 +1810,99 @@ if ($path === '/api/products/delete' && $method === 'POST') {
 }
 
 // ---------- notes (görüşmeler) ----------
+// ---------- proje asamasi: 7 asamali teklif pipeline ----------
+if ($path === '/api/projects/stage' && $method === 'POST') {
+    $u = require_user(); $b = body_json();
+    $p = q1('SELECT * FROM projects WHERE id=?', [(int)($b['id'] ?? 0)]);
+    if (!$p) j(404, ['error' => 'Proje bulunamadı.']);
+    if (!can_edit_project($u, $p)) j(403, ['error' => 'Bu projenin aşamasını değiştirme yetkiniz yok.']);
+    $target = (string)($b['stage'] ?? '');
+    if (!in_scalar($target, PROJECT_STAGES)) j(400, ['error' => 'Geçersiz aşama.']);
+    $from = $p['stage'] ?: 'Proje Açıldı';
+    if ($target === $from) j(200, ['ok' => true, 'stage' => $from, 'unchanged' => true]);
+    if ($from === 'Teklif Kabul Edildi') j(400, ['error' => 'Kazanılmış proje arşivdedir; aşaması değiştirilemez.']);
+    if ($from === 'Teklif Reddedildi') {
+        if ($target === 'Teklif Kabul Edildi') j(400, ['error' => 'Kaybedilen proje tekrar "Kabul Edildi"ye çevrilemez. Yeni proje açın.']);
+        if ($target !== 'Görüşülüyor') j(400, ['error' => 'Kaybedilen proje yalnız "Görüşülüyor" aşamasına alınarak yeniden açılabilir.']);
+    }
+    if ($target === 'Teklif Hazırlandı' || $target === 'Teklif Gönderildi') {
+        if (!count(project_quote_lines((int)$p['id']))) j(400, ['error' => 'Bu aşama için önce en az bir ürünü "Teklife hazır" işaretleyin.']);
+    }
+    $extra = [];
+    if ($target === 'Teklif Reddedildi') {
+        $reason = s($b['lost_reason'] ?? '', 80);
+        if ($reason === '' || !in_scalar($reason, PROJECT_LOST_REASONS)) j(400, ['error' => 'Red nedeni seçilmeden proje kaybedildi olarak kapatılamaz.']);
+        $extra['lost_reason'] = $reason;
+        $extra['lost_note'] = s($b['lost_note'] ?? '', 500);
+    }
+    if ($target === 'Teklif Kabul Edildi') {
+        $extra['won_date'] = today();
+        $extra['won_ref'] = s($b['won_ref'] ?? '', 60) !== '' ? s($b['won_ref'], 60) : 'PO-' . (1000 + (int)$p['id']);
+    }
+    if ($from === 'Teklif Reddedildi' && $target === 'Görüşülüyor') { $extra['lost_reason'] = ''; $extra['lost_note'] = ''; }
+    $sets = ['stage=?']; $args = [$target];
+    foreach ($extra as $k => $v) { $sets[] = $k . '=?'; $args[] = $v; }
+    $args[] = (int)$p['id'];
+    qx('UPDATE projects SET ' . implode(', ', $sets) . ' WHERE id=?', $args);
+    $text = 'Aşama değişti: ' . $from . ' → ' . $target;
+    if ($target === 'Teklif Reddedildi') $text .= ' (red nedeni: ' . $extra['lost_reason'] . ')';
+    qx('INSERT INTO notes(company_id,deal_id,project_id,type,text,owner_id,note_date,created_at) VALUES(?,?,?,?,?,?,?,?)',
+        [(int)$p['company_id'], (int)$p['deal_id'], (int)$p['id'], SYS_NOTE, $text, (int)$u['id'], today(), time()]);
+    write_log('project_stage', $u, $p['name'] . ': ' . $from . ' → ' . $target, 'project', (int)$p['id'], $p['name']);
+    add_activity((int)$u['id'], 'Proje aşaması: ' . $target . ' (' . $p['name'] . ')');
+    j(200, ['ok' => true, 'stage' => $target, 'from' => $from]);
+}
+
+// ---------- teklif revizyonlari (tum revizyonlar saklanir) ----------
+if ($path === '/api/quotes' && $method === 'GET') {
+    $u = require_user();
+    $pid = (int)($_GET['project_id'] ?? 0);
+    $p = q1('SELECT * FROM projects WHERE id=?', [$pid]);
+    if (!$p) j(404, ['error' => 'Proje bulunamadı.']);
+    $rows = qa('SELECT * FROM project_quotes WHERE project_id=? ORDER BY rev', [$pid]);
+    j(200, [
+        'quotes' => array_map(function ($q) use ($p) {
+            $r = quote_row($q); $r['no'] = quote_no($p, (int)$q['rev']); return $r;
+        }, $rows),
+        'lines' => project_quote_lines($pid),
+        'drafts' => project_missing_for_quote($pid),
+        'currency' => $p['currency'] ?: 'USD',
+        'next_rev' => count($rows) + 1,
+    ]);
+}
+
+if ($path === '/api/quotes' && $method === 'POST') {
+    $u = require_user(); $b = body_json();
+    $pid = (int)($b['project_id'] ?? 0);
+    $p = q1('SELECT * FROM projects WHERE id=?', [$pid]);
+    if (!$p) j(404, ['error' => 'Proje bulunamadı.']);
+    if (!can_edit_project($u, $p)) j(403, ['error' => 'Bu projeye teklif üretme yetkiniz yok.']);
+    $stage = $p['stage'] ?: 'Proje Açıldı';
+    if (in_array($stage, PROJECT_CLOSED, true)) j(400, ['error' => 'Kapanmış projede yeni revizyon üretilemez; yeni proje açın.']);
+    $lines = project_quote_lines($pid);
+    if (!count($lines)) j(400, ['error' => 'Teklif için önce en az bir ürünü "Teklife hazır" işaretleyin.']);
+    $rev = 1 + (int)(q1('SELECT COALESCE(MAX(rev),0) m FROM project_quotes WHERE project_id=?', [$pid])['m'] ?? 0);
+    $disc = max(0, min(40, (float)($b['discount'] ?? 0)));
+    $note = s($b['note'] ?? '', 500);
+    if ($note === '') $note = $rev === 1 ? 'İlk teklif.' : 'Revizyon: indirim %' . rtrim(rtrim(number_format($disc, 2, ',', ''), '0'), ',');
+    $cur = $p['currency'] ?: 'USD';
+    $t = quote_totals($lines, $disc);
+    qx('INSERT INTO project_quotes(project_id,rev,quote_date,discount,note,currency,lines,total_gross,total_net,created_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+        [$pid, $rev, today(), $disc, $note, $cur, json_encode($lines, JSON_UNESCAPED_UNICODE), $t['gross'], $t['net'], time(), (int)$u['id']]);
+    $qid = (int)db()->lastInsertId();
+    // Teklif uretildigi anda asama ilerler (gonderildi/bekliyor/kapali degilse)
+    $newStage = $stage;
+    if (!in_array($stage, ['Teklif Gönderildi', 'Bilgi Bekleniyor', 'Teklif Kabul Edildi', 'Teklif Reddedildi'], true)) $newStage = 'Teklif Hazırlandı';
+    if ($newStage !== $stage) qx('UPDATE projects SET stage=? WHERE id=?', [$newStage, $pid]);
+    $no = quote_no($p, $rev);
+    $text = 'Teklif ' . $no . ' (Rev.' . str_pad((string)$rev, 2, '0', STR_PAD_LEFT) . ') üretildi — ' . count($lines) . ' ürün · ' . $cur . ' ' . number_format($t['net'], 2, ',', '.');
+    qx('INSERT INTO notes(company_id,deal_id,project_id,type,text,owner_id,note_date,created_at) VALUES(?,?,?,?,?,?,?,?)',
+        [(int)$p['company_id'], (int)$p['deal_id'], $pid, SYS_NOTE, $text, (int)$u['id'], today(), time()]);
+    write_log('quote_generate', $u, $p['name'] . ': ' . $no . ' (' . count($lines) . ' ürün)', 'project', $pid, $p['name']);
+    add_activity((int)$u['id'], 'Teklif üretildi: ' . $no);
+    j(200, ['ok' => true, 'id' => $qid, 'rev' => $rev, 'quote_no' => $no, 'stage' => $newStage, 'totals' => $t, 'lines' => $lines]);
+}
+
 if ($path === '/api/notes' && $method === 'POST') {
     $u = require_user(); $b = body_json();
     $cid = (int)($b['company_id'] ?? 0);
@@ -1668,14 +1912,21 @@ if ($path === '/api/notes' && $method === 'POST') {
     $type = in_scalar($b['type'] ?? '', NOTE_TYPES) ? $b['type'] : 'Not';
     $date = valid_date($b['note_date'] ?? '') ? $b['note_date'] : today();
     $did = (int)($b['deal_id'] ?? 0);
-    qx('INSERT INTO notes(company_id,deal_id,type,text,owner_id,note_date,created_at) VALUES(?,?,?,?,?,?,?)',
-        [$cid, $did, $type, $text, (int)$u['id'], $date, time()]);
+    // Not istege bagli olarak bir projeye etiketlenir (0 = genel/projesiz).
+    $pid = (int)($b['project_id'] ?? 0);
+    if ($pid) {
+        $pr = q1('SELECT company_id FROM projects WHERE id=?', [$pid]);
+        if (!$pr || !can_see_company($u, (int)$pr['company_id'])) j(400, ['error' => 'Geçerli bir proje seçin.']);
+        if ((int)$pr['company_id'] !== $cid) j(400, ['error' => 'Proje ile seçilen müşteri aynı olmalı.']);
+    }
+    qx('INSERT INTO notes(company_id,deal_id,project_id,type,text,owner_id,note_date,created_at) VALUES(?,?,?,?,?,?,?,?)',
+        [$cid, $did, $pid, $type, $text, (int)$u['id'], $date, time()]);
     $next = s($b['next'] ?? '', 200);
     if ($next !== '') {
         if (!valid_date($b['next_date'] ?? '')) j(400, ['error' => 'Sonraki adım için tarih seçin.']);
         $nOwner = valid_id($b['next_owner_id'] ?? 0) ? (int)$b['next_owner_id'] : (int)$u['id'];
-        qx('INSERT INTO tasks(title,company_id,deal_id,owner_id,due_date,status,waiting,note,created_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?)',
-            [$next, $cid, $did, $nOwner, $b['next_date'], 'Yapılacak', 'Biz', 'Görüşme kaydından oluşturuldu.', time(), (int)$u['id']]);
+        qx('INSERT INTO tasks(title,company_id,deal_id,project_id,owner_id,due_date,status,waiting,note,created_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+            [$next, $cid, $did, $pid, $nOwner, $b['next_date'], 'Yapılacak', 'Biz', 'Görüşme kaydından oluşturuldu.', time(), (int)$u['id']]);
         add_activity((int)$u['id'], $text !== '' ? 'Görüşme kaydedildi + sonraki adım: ' . $next : 'Görüşme kaydedildi.');
     } else {
         add_activity((int)$u['id'], 'Görüşme kaydedildi (' . $type . ').');
@@ -1688,12 +1939,21 @@ if ($path === '/api/notes/list' && $method === 'GET') {
     $u = require_user();
     $cid = (int)($_GET['company_id'] ?? 0);
     if (!valid_id($cid) || !can_see_company($u, $cid)) j(400, ['error' => 'Geçerli bir müşteri seçin.']);
-    $notes = qa('SELECT * FROM notes WHERE company_id=? ORDER BY note_date DESC, id DESC', [$cid]);
+    // project_id verilmezse firmanin TUM notlari doner (mevcut davranis);
+    // verilirse yalnizca o projeye etiketli notlar.
+    $pid = (int)($_GET['project_id'] ?? 0);
+    $sql = 'SELECT n.*, p.name AS project_name FROM notes n LEFT JOIN projects p ON p.id=n.project_id WHERE n.company_id=?';
+    $prm = [$cid];
+    if ($pid) { $sql .= ' AND n.project_id=?'; $prm[] = $pid; }
+    $sql .= ' ORDER BY n.note_date DESC, n.id DESC';
+    $notes = qa($sql, $prm);
     $users = qa('SELECT id, name FROM users WHERE active=1');
     $umap = []; foreach ($users as $x) $umap[(int)$x['id']] = $x;
     j(200, ['notes' => array_map(fn($n) => [
         'id' => (int)$n['id'], 'type' => $n['type'], 'text' => $n['text'],
         'owner' => $umap[(int)$n['owner_id']]['name'] ?? '—', 'note_date' => $n['note_date'],
+        'deal_id' => (int)$n['deal_id'], 'project_id' => (int)$n['project_id'],
+        'project_name' => (string)($n['project_name'] ?? ''),
     ], $notes)]);
 }
 

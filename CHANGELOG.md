@@ -11,6 +11,10 @@ Not: 1.9.0 öncesi sürümler iki haneli şemayla (V1.0–V1.9) çıktı; SemVer
 
 
 
+
+## [1.10.1] - 2026-09-28
+- Giris ekrani ince ayar: kart seffaflastirildi ve bulaniklik azaltildi (fotograf net gorunur), yazı okunabilirliği için gölgeler güçlendirildi, sitede acilis animasyonu eklendi (kart kapı gibi acilir, motion azaltma tercihinde devre disi), captcha satiri yeniden dizayn edildi (esit yükseklikli kutu + yenile + giriş alanı)
+- Paket: Versiyon/Niateks_CRM_v1.10.1.zip
 ## [1.10.0] - 2026-09-27
 - Giris ekrani atolye fotografli yeni tasarıma gecti: tam ekran fotograf + koyu yari saydam kart, koza markasi, zeytin yesili buton; tum auth modlari (giris, kurulum, sifremi unuttum, sifre degisimi, sunucu yok) yeniden stillendi; captcha ve tum giris mantigi korundu; img/login-bg.jpg pakete eklendi (surumle.sh guncellendi)
 - Paket: Versiyon/Niateks_CRM_v1.10.0.zip
