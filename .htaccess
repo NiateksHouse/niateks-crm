@@ -9,6 +9,16 @@ RewriteRule ^nx_data/ - [F,L]
 RewriteRule ^api/?(.*)$ api.php [QSA,L]
 </IfModule>
 
+# Cikis sonrasi eski ekran donmesin: HTML asla onbelleklenmez (her acilista sunucudan taze gelir).
+# Cerezler HttpOnly + session-scoped oldugundan oturum yalniz sekmede degil butun tarayicida biter.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+</IfModule>
+
 # Veri ve oturum dosyalarını koru
 <FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|log|txt)$">
   <IfModule mod_authz_core.c>

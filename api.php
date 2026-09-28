@@ -473,6 +473,15 @@ session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'secure' => $https, '
 
 function current_user() {
     if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
+    // Oturum ici hareketten sonraki mutlak 60 dk limiti (sunucu tarafindan dayatilir):
+    // kapatilan sekme ne kadar acik kalirsa kalsin, 60 dk sonunda oturum gecersizdir.
+    $now = time();
+    if (!empty($_SESSION['uid']) && isset($_SESSION['last_seen']) && ($now - (int)$_SESSION['last_seen']) > 3600) {
+        $_SESSION = [];
+        if (session_status() === PHP_SESSION_ACTIVE) @session_destroy();
+        return null;
+    }
+    if (!empty($_SESSION['uid'])) $_SESSION['last_seen'] = $now;
     if (empty($_SESSION['uid'])) return null;
     $u = q1('SELECT * FROM users WHERE id=? AND active=1', [(int)$_SESSION['uid']]);
     if (!$u) { unset($_SESSION['uid']); return null; }
@@ -482,6 +491,7 @@ function start_session_for($u) {
     if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
     session_regenerate_id(true);
     $_SESSION['uid'] = (int)$u['id'];
+    $_SESSION['last_seen'] = time();
 }
 function require_user() {
     $u = current_user();
