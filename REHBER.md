@@ -110,7 +110,19 @@ Hesabın: **github.com/NiateksHouse** (Private depolar: niateks-crm, niateks-web
 
 ---
 
-## 9. Sözlük (mini)
+## 9. Modül dokümantasyonları (neden, nasıl bakılır?)
+
+- **MODUL-PROJE-TEKLIF.md** — V1.11.0 Proje & Teklif Yönetimi: 7 aşama kuralları, revizyonlu
+  teklif (`NX-YYYY-NNNN.Rn`), PDF çıktısı, kanban, ürüne bağlı görseller, API ve test.
+  CRM'de bir aşama/teklif davranışını anlamadığında önce ona bak.
+- **CHANGELOG.md** — hangi sürümde ne değişti (otomatik yazılır; elle ekleme yapma).
+
+> **Bilinen durum:** KURULUM.md eski bir HTML mockup'tan kalmadır (gerçek kurulum adımları
+> içermez; içindeki "Ürün Ağacı (BOM)" ifadesi marka/mockup dokümanına aittir, gerçek CRM'de
+> BOM tablosu yoktur). Kurulum aslında: zip'i sunucuda aç + siteyi aç + ekrandaki kurulum
+> sihirbazını izle. İstenirse bu dosya gerçek bir kurulum dokümanıyla değiştirilir.
+
+## 10. Sözlük (mini)
 
 - **commit:** projenin o andaki fotoğrafı + açıklaması
 - **push:** fotoğrafları GitHub'a göndermek
