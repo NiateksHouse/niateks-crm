@@ -13,6 +13,10 @@ Not: 1.9.0 öncesi sürümler iki haneli şemayla (V1.0–V1.9) çıktı; SemVer
 
 
 
+
+## [1.11.1] - 2026-09-29
+- Oturum ve mail guvenlik duzeltmeleri: hos geldin/sifre sifirlama mailindeki giris linki artik hangi ortamdan atildiysa o adresi gosteriyor (nx_base_url: koza/koza-dev/local ayrimi, CLI'da canli varsayilan), HTML sayfalara no-store cache basliklari (.htaccess; cikis sonrasi geri ok ile eski ekran donmesi engellendi), sunucu tarafinda 60 dk hereketsizlik oturum timeout'u (last_seen; sekme acik kalsa bile oturum biter)
+- Paket: Versiyon/Niateks_CRM_v1.11.1.zip
 ## [1.11.0] - 2026-09-28
 - Proje & Teklif Yonetimi modulu: 7 asamali proje pipeline (tiklanabilir asama seridi, red nedeni diyalogu, kazan Referans alani, kapanmis proje arsiv modu), revizyonlu teklif uretimi (NX-YYYY-NNNN.Rn, indirim + not, eski revizyonlar arsivde), teklif PDF onizleme ve A4 Yazdir/PDF cikti, Projeler ekranina 7 sutunlu kanban + surukle-birak + acik/kapanmis filtresi + liste gecisi, urune bagli gorsel (project_images.product_id; 0=proje geneli) ve cekmecede Gorseller bolumu; KRITIK DÜZELTME: bos vals JSON [] dondugunden ilk alan doldurmasi kayboluyordu (object cast + istemci normalizasyonu), canli Toplam adet hesabi, teklif panelinin urun hazir olunca tazelenmesi; api: /api/projects/stage, /api/quotes GET/POST, projects stage/lost_*/won_* kolonlari + project_quotes tablosu + migration, 47 API testi
 - Paket: Versiyon/Niateks_CRM_v1.11.0.zip
