@@ -1,3 +1,6 @@
+@auth
+@include('workspace.layout')
+@else
 <!doctype html>
 <html lang="tr">
 <head>
@@ -39,3 +42,5 @@
 @guest<footer class="login-footer"><span>NIATEKS HOUSE</span><span>2.0.0-alpha.24</span></footer>@endguest
 </body>
 </html>
+
+@endauth

@@ -8,9 +8,10 @@ use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SupplyCategoryController;
+use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/companies');
+Route::redirect('/', '/home');
 Route::middleware('guest')->group(function () {
     Route::get('/activate', [ActivationController::class, 'create'])->name('activation.create');
     Route::post('/activate', [ActivationController::class, 'store'])->middleware('throttle:activation')->name('activation.store');
@@ -18,6 +19,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [SessionController::class, 'store'])->middleware('throttle:login');
 });
 Route::middleware(['auth', 'active'])->group(function () {
+    Route::get('/home', [WorkspaceController::class, 'home'])->name('workspace.home');
+    Route::get('/activities', [WorkspaceController::class, 'activities'])->name('workspace.activities');
+    Route::get('/workspace/{module}', [WorkspaceController::class, 'module'])->name('workspace.module');
     Route::post('/companies/{company}/matching', [MatchingController::class, 'existing'])->name('matching.existing');
     Route::post('/matching/cancel', [MatchingController::class, 'cancel'])->name('matching.cancel');
     Route::post('/matching/aliases', [MatchingController::class, 'alias'])->name('matching.alias');

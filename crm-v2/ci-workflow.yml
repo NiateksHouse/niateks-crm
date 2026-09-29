@@ -82,7 +82,7 @@ jobs:
           tar --exclude='./.phpunit.cache' --exclude='./vendor' --exclude='./.env' --exclude='./storage/logs/*' --exclude='./bootstrap/cache/*.php' --exclude='./storage/framework/views/*.php' -czf /tmp/koza-build/source-with-lock.tar.gz .
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: koza-alpha25-reviewed-source
+          name: koza-alpha26-reviewed-source
           path: /tmp/koza-build/source-with-lock.tar.gz
           retention-days: 7
           if-no-files-found: error
@@ -94,9 +94,9 @@ jobs:
           python3 tools/build_release.py
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: koza-alpha25-runtime
+          name: koza-alpha26-runtime
           path: |
-            /tmp/koza-build/koza-crm-v2.0.0-alpha.25-runtime.zip
+            /tmp/koza-build/koza-crm-v2.0.0-alpha.26-runtime.zip
             /tmp/koza-build/SHA256SUMS.txt
           retention-days: 7
           if-no-files-found: error

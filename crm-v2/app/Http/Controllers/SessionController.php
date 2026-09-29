@@ -23,7 +23,7 @@ class SessionController
         }
         $request->session()->regenerate();
 
-        return redirect()->intended(route('companies.index'));
+        return redirect()->intended(route('workspace.home'));
     }
 
     public function destroy(Request $request)

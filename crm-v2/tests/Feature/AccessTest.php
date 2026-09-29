@@ -15,7 +15,7 @@ class AccessTest extends TestCase
     public function test_valid_credentials_login_and_logout(): void
     {
         $u = $this->user();
-        $this->post('/login', ['username' => 'rep', 'password' => 'Test-only-Password-782!'])->assertRedirect('/companies');
+        $this->post('/login', ['username' => 'rep', 'password' => 'Test-only-Password-782!'])->assertRedirect('/home');
         $this->assertAuthenticatedAs($u);
         $this->post('/logout')->assertRedirect('/login');
         $this->assertGuest();
