@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Activity;
 use App\Services\CompanyService;
 use App\Services\ProjectService;
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class ProjectActivityTest extends TestCase
@@ -13,10 +14,10 @@ class ProjectActivityTest extends TestCase
     {
         $owner = $this->user();
         $company = app(CompanyService::class)->save($owner, $this->companyData());
-        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]));
+        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]));
         $this->assertDatabaseHas('users', ['id' => $owner->id, 'username' => 'rep']);
         $this->assertDatabaseHas('companies', ['id' => $company->id, 'name' => 'Example Textile']);
-        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]));
+        $this->assertSame(0, Artisan::call('migrate', ['--force' => true]));
         $this->assertDatabaseHas('users', ['id' => $owner->id, 'username' => 'rep']);
         $this->assertDatabaseHas('companies', ['id' => $company->id, 'name' => 'Example Textile']);
         $this->assertDatabaseCount('projects', 0);

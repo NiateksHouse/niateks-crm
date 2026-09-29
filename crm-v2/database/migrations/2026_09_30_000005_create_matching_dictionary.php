@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\DuplicateMatcher;
+use App\Support\DisposableTestDatabase;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -92,7 +93,7 @@ return new class extends Migration
         if (! app()->environment('testing')) {
             throw new RuntimeException('Forward-only matching migration: restore reviewed backup instead of deleting learning history.');
         }
-        \App\Support\DisposableTestDatabase::assertSafe();
+        DisposableTestDatabase::assertSafe();
 
         // Restore the old uniqueness rules without deleting or rewriting company rows.
         // Refuse BEFORE DDL if intentional duplicates now make those rules impossible.

@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\Models\User;
+use App\Support\DisposableTestDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Artisan;
 
@@ -11,7 +12,7 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        \App\Support\DisposableTestDatabase::assertSafe();
+        DisposableTestDatabase::assertSafe();
         Artisan::call('migrate:fresh', ['--force' => true]);
     }
 
