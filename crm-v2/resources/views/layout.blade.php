@@ -29,7 +29,7 @@
         <a href="{{ route('matching.index') }}">Firma sözlüğü</a>
     </nav>
     <p class="sidebar-note">Firma bilgileri ortak.<br>Her yeni bilgi, geçmişi korunarak kaydedilir.</p>
-    <p class="version">2.0.0-alpha.24</p>
+    <p class="version">2.0.0-alpha.26</p>
 </aside>
 @endauth
 <main id="main">
@@ -39,7 +39,7 @@
     @endif
     @yield('content')
 </main>
-@guest<footer class="login-footer"><span>NIATEKS HOUSE</span><span>2.0.0-alpha.24</span></footer>@endguest
+@guest<footer class="login-footer"><span>NIATEKS HOUSE</span><span>2.0.0-alpha.26</span></footer>@endguest
 </body>
 </html>
 
