@@ -10,6 +10,18 @@ use Tests\TestCase;
 
 class ProjectActivityTest extends TestCase
 {
+    public function test_upgrade_keeps_existing_users_and_companies(): void
+    {
+        \Illuminate\Support\Facades\Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]);
+        $owner = $this->user();
+        $company = app(CompanyService::class)->save($owner, $this->companyData());
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $this->assertDatabaseHas('users', ['id' => $owner->id, 'username' => 'rep']);
+        $this->assertDatabaseHas('companies', ['id' => $company->id, 'name' => 'Example Textile']);
+        $this->assertDatabaseCount('projects', 0);
+        $this->assertDatabaseCount('activities', 0);
+    }
+
     private function fixture(): array
     {
         $owner = $this->user();
@@ -35,6 +47,7 @@ class ProjectActivityTest extends TestCase
         $this->get('/projects/'.$project->id)->assertNotFound();
         $this->get('/projects/'.$project->id.'/edit')->assertNotFound();
         $this->get('/projects/'.$project->id.'/history')->assertNotFound();
+        $this->put('/projects/'.$project->id, ['name' => 'Overwrite', 'stage' => 'opened', 'version' => 1])->assertNotFound();
         $this->get('/activities/'.$activity->id.'/edit')->assertNotFound();
         $this->get('/activities/'.$activity->id.'/history')->assertNotFound();
         $this->put('/activities/'.$activity->id, array_diff_key($this->note(), ['kind' => true]) + ['version' => 1])->assertNotFound();
