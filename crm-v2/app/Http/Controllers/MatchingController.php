@@ -148,10 +148,10 @@ class MatchingController
             $old = DB::table('matching_settings')->where('id', 1)->lockForUpdate()->first();
             abort_unless($old->version === $d['version'] || (int) $old->version === (int) $d['version'], 409);
             $values = collect($d)->except(['version', 'reason'])->map(fn ($v) => (int) $v)->all();
-            DB::table('matching_settings')->where('id',1)->update(['values' => json_encode($values), 'version' => $old->version + 1, 'updated_at' => now()]);
-            $decisions->event($request->user(),'settings_changed',null,['before' => json_decode($old->values,true), 'after' => $values, 'reason' => $d['reason']]);
+            DB::table('matching_settings')->where('id', 1)->update(['values' => json_encode($values), 'version' => $old->version + 1, 'updated_at' => now()]);
+            $decisions->event($request->user(), 'settings_changed', null, ['before' => json_decode($old->values, true), 'after' => $values, 'reason' => $d['reason']]);
         });
 
-        return back()->with('status','Eşleşme ayarları kaydedildi.');
+        return back()->with('status', 'Eşleşme ayarları kaydedildi.');
     }
 }

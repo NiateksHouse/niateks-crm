@@ -187,12 +187,12 @@ class MatchingTest extends TestCase
         $data = ['company_id' => $c->id, 'alias' => 'Tamamen Farklı Marka', 'reason' => 'Ticaret kaydı doğrulandı'];
         $this->post('/matching/aliases', $data)->assertSessionHasErrors('confirmed');
         $this->assertDatabaseCount('self_learning_company_dictionary', 0);
-        $this->post('/matching/aliases',$data + ['confirmed' => 1])->assertRedirect();
-        $this->post('/matching/aliases',$data + ['confirmed' => 1])->assertRedirect();
-        $this->assertDatabaseCount('self_learning_company_dictionary',1);
-        $this->assertDatabaseHas('matching_events',['action' => 'alias_reconfirmed']);
-        $found = app(DuplicateMatcher::class)->find('company',['name' => 'Tamamen Farklı Markaa'],$u)['matches'];
-        $this->assertSame($c->id,$found[0]['id']);
-        $this->assertGreaterThanOrEqual(70,$found[0]['duplicate_confidence_score']);
+        $this->post('/matching/aliases', $data + ['confirmed' => 1])->assertRedirect();
+        $this->post('/matching/aliases', $data + ['confirmed' => 1])->assertRedirect();
+        $this->assertDatabaseCount('self_learning_company_dictionary', 1);
+        $this->assertDatabaseHas('matching_events', ['action' => 'alias_reconfirmed']);
+        $found = app(DuplicateMatcher::class)->find('company', ['name' => 'Tamamen Farklı Markaa'], $u)['matches'];
+        $this->assertSame($c->id, $found[0]['id']);
+        $this->assertGreaterThanOrEqual(70, $found[0]['duplicate_confidence_score']);
     }
 }

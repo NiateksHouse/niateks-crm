@@ -106,7 +106,7 @@ class DuplicateMatcher
         $conflicts = [];
         $labels = ['tax' => 'Aynı ülke ve vergi numarası', 'domain' => 'Aynı web sitesi alan adı', 'email' => 'Aynı e-posta', 'phone' => 'Aynı telefon'];
         foreach ($labels as $key => $label) {
-            if (isset($a[$key],$b[$key])) {
+            if (isset($a[$key], $b[$key])) {
                 if ($a[$key] === $b[$key]) {
                     $points += $weights[$key];
                     $reasons[] = ['text' => $label, 'points' => $weights[$key]];
@@ -158,7 +158,7 @@ class DuplicateMatcher
             return ['matches' => [], 'suppressed' => 0, 'settings' => $weights];
         }
         $ids = DB::table('matching_keys')->where('entity_type', $type)->where(function ($q) use ($pairs) {
-            foreach ($pairs as [$k,$v]) {
+            foreach ($pairs as [$k, $v]) {
                 $q->orWhere(fn ($c) => $c->where('kind', $k)->where('value', $v));
             }
         });
@@ -198,9 +198,9 @@ class DuplicateMatcher
 
                 continue;
             }
-            $found[] = array_merge($score,['id' => $record->id, 'name' => $record->name, 'fingerprint' => $this->fingerprint($candidate)]);
+            $found[] = array_merge($score, ['id' => $record->id, 'name' => $record->name, 'fingerprint' => $this->fingerprint($candidate)]);
         }
-        usort($found,fn ($a,$b) => $b['duplicate_confidence_score'] <=> $a['duplicate_confidence_score'] ?: $a['id'] <=> $b['id']);
+        usort($found, fn ($a, $b) => $b['duplicate_confidence_score'] <=> $a['duplicate_confidence_score'] ?: $a['id'] <=> $b['id']);
 
         return ['matches' => $found, 'suppressed' => $suppressed, 'settings' => $weights];
     }

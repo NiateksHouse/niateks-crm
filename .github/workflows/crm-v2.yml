@@ -47,7 +47,7 @@ jobs:
           coverage: none
       - run: composer validate --strict --no-check-publish
       - run: composer install --no-interaction --prefer-dist
-      - run: composer lint
+      - run: composer lint -- --diff
       - run: composer audit
       - name: PHP syntax
         run: find app bootstrap config database routes tests -name '*.php' -print0 | xargs -0 -n1 php -l

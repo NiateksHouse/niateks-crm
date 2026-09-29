@@ -42,7 +42,7 @@ class ContactController
             }
             $contact = DB::transaction(fn () => $review->createContact($r, $data));
 
-            return redirect()->route('contacts.show', $contact)->with('status','Kişi kaydedildi.');
+            return redirect()->route('contacts.show', $contact)->with('status', 'Kişi kaydedildi.');
         });
     }
 }
