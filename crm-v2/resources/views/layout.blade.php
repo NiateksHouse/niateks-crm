@@ -24,7 +24,7 @@
         <a href="{{ route('projects.index') }}" @if(request()->routeIs('projects.*')) aria-current="page" @endif><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 5h7l2 3h9v12H3z"/></svg> Projeler</a>
     </nav>
     <p class="sidebar-note">Firma bilgileri ortak.<br>Her yeni bilgi, geçmişi korunarak kaydedilir.</p>
-    <p class="version">2.0.0-alpha.22</p>
+    <p class="version">2.0.0-alpha.23</p>
 </aside>
 @endauth
 <main id="main">
@@ -34,6 +34,6 @@
     @endif
     @yield('content')
 </main>
-@guest<footer class="login-footer"><span>NIATEKS HOUSE</span><span>2.0.0-alpha.22</span></footer>@endguest
+@guest<footer class="login-footer"><span>NIATEKS HOUSE</span><span>2.0.0-alpha.23</span></footer>@endguest
 </body>
 </html>
