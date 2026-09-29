@@ -4,6 +4,8 @@ use App\Http\Controllers\ActivationController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentCategoryController;
 use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SessionController;
@@ -19,6 +21,20 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [SessionController::class, 'store'])->middleware('throttle:login');
 });
 Route::middleware(['auth', 'active'])->group(function () {
+    Route::post('/document-categories', [DocumentCategoryController::class, 'store'])->name('document-categories.store');
+    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}', [DocumentController::class, 'show'])->whereNumber('document')->name('documents.show');
+    Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->whereNumber('document')->name('documents.edit');
+    Route::put('/documents/{document}', [DocumentController::class, 'update'])->whereNumber('document')->name('documents.update');
+    Route::put('/documents/{document}/access', [DocumentController::class, 'access'])->whereNumber('document')->name('documents.access');
+    Route::post('/documents/{document}/versions', [DocumentController::class, 'version'])->whereNumber('document')->name('documents.versions');
+    Route::get('/documents/{document}/versions/{version}/download', [DocumentController::class, 'file'])->whereNumber(['document', 'version'])->name('documents.download');
+    Route::get('/documents/{document}/versions/{version}/preview', [DocumentController::class, 'file'])->whereNumber(['document', 'version'])->name('documents.preview');
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->whereNumber('document')->name('documents.destroy');
+    Route::post('/documents/{document}/restore', [DocumentController::class, 'restore'])->whereNumber('document')->name('documents.restore');
+
     Route::get('/home', [WorkspaceController::class, 'home'])->name('workspace.home');
     Route::get('/activities', [WorkspaceController::class, 'activities'])->name('workspace.activities');
     Route::get('/workspace/{module}', [WorkspaceController::class, 'module'])->name('workspace.module');

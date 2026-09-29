@@ -14,7 +14,7 @@ class SecurityHeaders
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('Referrer-Policy', 'same-origin');
         $response->headers->set('Cache-Control', 'no-store, private');
-        $response->headers->set('Content-Security-Policy', "default-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+        $response->headers->set('Content-Security-Policy', ($request->routeIs('documents.preview') ? "sandbox; default-src 'none'; frame-ancestors 'none'; base-uri 'none'" : "default-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"));
 
         return $response;
     }

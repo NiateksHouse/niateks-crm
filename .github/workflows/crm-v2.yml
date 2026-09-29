@@ -79,10 +79,10 @@ jobs:
         run: |
           php artisan view:clear
           mkdir -p /tmp/koza-build
-          tar --exclude='./.phpunit.cache' --exclude='./vendor' --exclude='./.env' --exclude='./storage/logs/*' --exclude='./bootstrap/cache/*.php' --exclude='./storage/framework/views/*.php' -czf /tmp/koza-build/source-with-lock.tar.gz .
+          tar --exclude='./.phpunit.cache' --exclude='./vendor' --exclude='./.env' --exclude='./storage/logs/*' --exclude='./storage/app/*' --exclude='./storage/framework/testing/*' --exclude='./storage/framework/sessions/*' --exclude='./bootstrap/cache/*.php' --exclude='./storage/framework/views/*.php' -czf /tmp/koza-build/source-with-lock.tar.gz .
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: koza-alpha26-reviewed-source
+          name: koza-alpha27-reviewed-source
           path: /tmp/koza-build/source-with-lock.tar.gz
           retention-days: 7
           if-no-files-found: error
@@ -94,9 +94,9 @@ jobs:
           python3 tools/build_release.py
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: koza-alpha26-runtime
+          name: koza-alpha27-runtime
           path: |
-            /tmp/koza-build/koza-crm-v2.0.0-alpha.26-runtime.zip
+            /tmp/koza-build/koza-crm-v2.0.0-alpha.27-runtime.zip
             /tmp/koza-build/SHA256SUMS.txt
           retention-days: 7
           if-no-files-found: error

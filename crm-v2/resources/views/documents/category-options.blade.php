@@ -1,0 +1,1 @@
+@foreach($nodes as $node)<option value="{{ $node['category']->id }}" @selected((int)$selected===$node['category']->id)>{{ str_repeat('— ', $depth) }}{{ $node['category']->name }}</option>@include('documents.category-options',['nodes'=>$node['children'],'depth'=>$depth+1,'selected'=>$selected])@endforeach
