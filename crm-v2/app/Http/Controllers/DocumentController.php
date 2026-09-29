@@ -115,7 +115,7 @@ class DocumentController
         $document->load(['category', 'owner', 'latestVersion.uploader']);
         $service->event($r->user(), $document, 'viewed');
 
-        return view('documents.show', $this->choices() + ['document' => $document, 'history' => $document->versions()->with('uploader')->where('number', '<', $document->current_version)->orderByDesc('number')->paginate(10), 'events' => DB::table('document_events')->join('users', 'users.id', '=', 'document_events.actor_id')->where('document_id', $document->id)->select('document_events.action', 'document_events.version', 'document_events.created_at', 'users.name')->latest('document_events.id')->limit(30)->get()]);
+        return view('documents.show', $this->choices() + ['document' => $document, 'history' => $document->versions()->with('uploader')->where('number', '<', $document->current_version)->orderByDesc('number')->paginate(10), 'events' => DB::table('document_events')->join('users', 'users.id', '=', 'document_events.actor_id')->where('document_id', $document->id)->select('document_events.action', 'document_events.version', 'document_events.created_at', 'document_events.details', 'users.name')->latest('document_events.id')->limit(30)->get()]);
     }
 
     public function edit(Request $r, int $document)

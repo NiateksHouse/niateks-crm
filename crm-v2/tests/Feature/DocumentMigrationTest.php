@@ -18,7 +18,7 @@ class DocumentMigrationTest extends TestCase
             $migration->down();
             $this->fail('Persistent rollback must be refused.');
         } catch (RuntimeException $error) {
-            $this->assertStringContainsString('Forward-only', $error->getMessage());
+            $this->assertStringContainsString('explicitly designated disposable MySQL _ci database', $error->getMessage());
         } finally {
             $this->app->instance('env', 'testing');
         }

@@ -53,8 +53,8 @@ class DocumentService
             $after = $document->only($fields);
             $document->revision++;
             $document->save();
-            // ACL identifiers are auditable; document text stays in the protected document record.
-            $details = $permissions ? ['before' => $before, 'after' => $after] : ['changed_fields' => array_keys(array_filter($after, fn ($v, $k) => $before[$k] != $v, ARRAY_FILTER_USE_BOTH))];
+            // Both permission and metadata revisions remain behind the document ACL.
+            $details = ['before' => $before, 'after' => $after];
             $this->event($actor, $document, $permissions ? 'permissions_changed' : 'metadata_changed', $details);
         });
     }

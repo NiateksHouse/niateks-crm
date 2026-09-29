@@ -193,6 +193,21 @@ class DocumentTest extends TestCase
         $this->assertSame('Revised name', $doc->name);
         $this->put("/documents/$doc->id", $data)->assertStatus(409);
         $this->assertDatabaseHas('document_events', ['document_id' => $doc->id, 'action' => 'metadata_changed']);
+        $details = json_decode(DB::table('document_events')->where('document_id', $doc->id)->where('action', 'metadata_changed')->value('details'), true);
+        $this->assertNotSame('Revised name', $details['before']['name']);
+        $this->assertSame('Revised name', $details['after']['name']);
+        $this->get("/documents/$doc->id")->assertOk()->assertSee('Önceki bilgiler');
+    }
+
+    public function test_valid_images_preview_and_category_management_is_admin_only(): void
+    {
+        $owner = $this->user('owner', 'admin');
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+cXioAAAAASUVORK5CYII=');
+        $doc = $this->createDocument($owner, ['file' => UploadedFile::fake()->createWithContent('sample.png', $png)]);
+        $this->get("/documents/$doc->id/versions/{$doc->latestVersion->id}/preview")->assertOk()->assertHeader('Content-Type', 'image/png');
+        $this->actingAs($this->user('reader'))->post('/document-categories', ['name' => 'Forbidden category'])->assertForbidden();
+        $this->assertDatabaseMissing('document_categories', ['name' => 'Forbidden category']);
+        $this->actingAs($owner)->post('/document-categories', ['name' => 'İnsan Kaynakları'])->assertSessionHasErrors('name');
     }
 
     public function test_guest_and_inactive_users_cannot_access_documents(): void
