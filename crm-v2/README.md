@@ -1,9 +1,5 @@
-# KOZA CRM v2.0.0-alpha.17
+# KOZA CRM v2.0.0-alpha.18
 
-Laravel/MySQL source foundation; not a deployable release. No vendor directory or dependency lock yet. Existing CRM root is untouched; this app lives in crm-v2 on the development branch.
+Build preparation for the shared company foundation. CI formats PHP with Pint, checks the formatting, runs MySQL feature tests and real HTTP login/CSRF/logout checks. A source artifact includes the resolved composer.lock for review and versioning. It excludes vendor and is not a hosting installation package.
 
-Shared company cards support customer, supplier or both roles, multiple supply areas, role/category filtering, and admin-created supply areas. All active employees can add a new revision; previous snapshots remain behind the history page with actor and time. Concurrent stale edits are rejected. Only admins archive cards. Purchasing is planned separately, not implemented. Finance permissions are not implemented by this slice.
-
-Validation: CI runs PHP 8.4 and isolated MySQL 8.0 tests, dependency audit and Blade compilation. See the current GitHub Actions run for this commit. Browser/session/CSRF integration review, dependency lock, code formatting, user provisioning and deployment checks remain before hosting release.
-
-User guide intentionally unchanged pending separate approval. Existing demo screens are not yet integrated with this backend.
+No hosting release is performed. User provisioning, production dependency packaging, approved UI integration and hosting smoke checks remain. Existing company guide v0.3.0 stays valid and unchanged. See VALIDATION.md for current results.

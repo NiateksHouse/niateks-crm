@@ -47,6 +47,8 @@ jobs:
           coverage: none
       - run: composer validate --strict --no-check-publish
       - run: composer install --no-interaction --prefer-dist
+      - run: vendor/bin/pint
+      - run: composer lint
       - run: composer audit
       - name: PHP syntax
         run: find app bootstrap config database routes tests -name '*.php' -print0 | xargs -0 -n1 php -l
@@ -54,3 +56,26 @@ jobs:
         run: composer test
       - name: Blade compilation
         run: php artisan view:cache
+      - name: Real HTTP session and CSRF checks
+        env:
+          APP_ENV: ci_http
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          APP_URL: http://127.0.0.1:8089
+          SESSION_SECURE_COOKIE: 'false'
+        run: |
+          php tests/http/seed.php
+          php artisan serve --host=127.0.0.1 --port=8089 > /tmp/koza-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python3 tests/http/check.py
+      - name: Prepare reviewed source bundle
+        run: |
+          php artisan view:clear
+          mkdir -p /tmp/koza-build
+          tar --exclude='./vendor' --exclude='./.env' --exclude='./storage/logs/*' --exclude='./bootstrap/cache/*.php' --exclude='./storage/framework/views/*.php' -czf /tmp/koza-build/source-with-lock.tar.gz .
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: koza-alpha18-reviewed-source
+          path: /tmp/koza-build/source-with-lock.tar.gz
+          retention-days: 7
+          if-no-files-found: error
