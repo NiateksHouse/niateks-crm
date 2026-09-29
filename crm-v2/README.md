@@ -1,5 +1,9 @@
-# KOZA CRM v2.0.0-alpha.18
+# KOZA CRM v2.0.0-alpha.19
 
-Locked and formatted Laravel/MySQL company-card foundation with real HTTP login, CSRF, logout/session replay tests. composer.lock fixes the dependency set. CI checks Pint without changing files, runs MySQL feature tests, compiles Blade, checks real HTTP flows, and packages runtime dependencies without development tools or project test fixtures.
+Branded Laravel login uses the previously approved workshop image and Niateks House logo. The shared company header also uses the logo. Existing authentication, CSRF and session behavior is retained.
 
-The runtime ZIP is a test installation candidate, not a deployed or fully finished CRM. Initial user provisioning, approved UI integration, supported hosting command execution, secret configuration and HTTPS hosting checks remain. See INSTALL.md. Company guide v0.3.0 is unchanged.
+`koza:create-user` is an interactive administrative command with hidden password confirmation, input validation, duplicate protection and explicit admin/finance options. It never resets an existing account, never accepts a password argument, and rejects noninteractive invocation. No real user accounts or credentials are included.
+
+CI passed 22 MySQL tests and real HTTP checks (see external test record for authoritative counts, commit and run). Formatting, dependency checks, Blade compilation and runtime packaging passed. Local view rendering passed. Visual desktop/mobile inspection remains unverified because the browser security policy rejected opening the local preview.
+
+Hosting still needs a supported initial account setup path: existing cPanel has Cron but no interactive terminal. Cron cannot use this command. See INSTALL.md. No hosting deployment or merge occurred. Guide v0.3.0 is unchanged; a future login guide update requires separate approval.
