@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AccountInvitation;
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
 
@@ -14,7 +15,7 @@ User::forceCreate([
     'password' => 'Disposable-http-fixture-782!', 'role' => 'representative', 'active' => true,
 ]);
 
-App\Models\AccountInvitation::create([
+AccountInvitation::create([
     'username' => 'http_invited', 'email' => 'http-invited@example.test', 'name' => 'HTTP Invited',
     'role' => 'representative', 'can_view_all_finance' => false,
     'token_hash' => hash('sha256', str_repeat('f', 64)), 'expires_at' => now()->addHour(),
