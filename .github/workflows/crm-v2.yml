@@ -47,7 +47,12 @@ jobs:
           coverage: none
       - run: composer validate --strict --no-check-publish
       - run: composer install --no-interaction --prefer-dist
-      - run: composer lint -- --diff
+      - run: composer lint
+      - name: Formatting diagnostic
+        if: failure()
+        run: |
+          php vendor/bin/pint
+          git diff --color=never -- app tests
       - run: composer audit
       - name: PHP syntax
         run: find app bootstrap config database routes tests -name '*.php' -print0 | xargs -0 -n1 php -l
