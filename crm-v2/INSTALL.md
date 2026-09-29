@@ -1,15 +1,16 @@
-# Alpha.18 test kurulumu — yayın öncesi kontrol
+# Alpha.20 — test ortamı kurulum sırası
 
-Bu paket ilk firma kartı altyapısıdır; tam CRM veya onaylı görsel demo değildir. PHP 8.4 ve MySQL 8 gerekir. Canlı ortamda kullanım onayı verilmiş sayılmaz.
+Bu paket tam CRM değildir. Yalnız giriş, ilk hesap daveti ve firma altyapısıdır. Kılavuz v0.3.0 değiştirilmedi.
 
-1. Test alanının ve niatekscom_koza_test veritabanının ayrı olduğunu doğrula. Mevcut dosyaları/DB durumunu sunucuda yedekle. Yerel büyük yedek indirme.
-2. Paketi /home/niatekscom altında ayrı bir sürüm klasörüne çıkar. Yalnız public klasörünü test alanının web kökü yap. .env, vendor, storage ve database internetten erişilemez olmalı. Dosya kökünü doğrulamadan trafik yönlendirme.
-3. .env.example dosyasından .env oluştur; DB parolası ve uygulama anahtarını yalnız sunucuda güvenli girişle ayarla. APP_ENV=staging, APP_DEBUG=false, HTTPS APP_URL, SESSION_SECURE_COOKIE=true, test ortamına özel oturum adı. Mail gönderimi kapalı kalır.
-4. PHP çalıştırıcısını ve gerekli uzantıları sunucuda doğrula. Terminal olmayan hostingde sağlayıcının desteklediği güvenli komut çalıştırma yolu netleşmeden migration/provisioning yapma. Web üzerinden açık kurulum veya komut çalıştırma dosyası oluşturma.
-5. Yetkili komut ortamında sırayla `php artisan key:generate --force` (yalnız ilk kurulumda), `php artisan migrate --force`, `php artisan config:cache`, `php artisan view:cache` çalıştır. Var olan anahtarı sonraki dağıtımlarda değiştirme. migrate:fresh hostingde çalıştırılmaz.
-6. Etkileşimli ve yetkili bir komut ortamında `php artisan koza:create-user KULLANICI_ADI EPOSTA --name="AD SOYAD"` komutuyla yeni kullanıcı oluşturulur. Yönetici için `--admin`, ayrıca genel finans için `--all-finance` açıkça seçilir. Parola gizli iki kez sorulur; argüman olarak verilmez. En az 14 karakter, büyük/küçük harf, sayı, simge; en çok 72 bayt. Var olan hesap veya parola değiştirilmez. Nigar genel finans yetkili yönetici; Tunç yönetici ancak genel finans yetkisiz olacak şekilde planlanmıştır. Gerçek hesaplar bu paket tarafından otomatik oluşturulmaz.
-7. Mevcut cPanel'de Cron var, etkileşimli Terminal/SSH yok. Bu komut Cron üzerinden çalıştırılamaz; otomatik girişsiz kullanım bilinçli olarak reddedilir. Sağlayıcının desteklediği etkileşimli kurulum veya ayrıca test edilmiş tek kullanımlık hesap davet akışı gerekli. Açık web kurulum dosyası veya parolayı komut satırına yazma çözümü kullanılmaz.
-8. storage ve bootstrap/cache için yalnız gereken yazma iznini ver; 777 kullanma. HTTPS, güvenli çerezler, dizin listelemenin kapalı olması, özel dosyalara erişilememesi ve giriş/çıkış/firma işlemlerini test alanında doğrula.
-9. Geri dönüşte önce önceki uygulama sürümüne dön. Migration down ile bilgi geçmişini silme; veritabanı geri yüklemesi gerekiyorsa yeni verileri koruma planıyla ayrıca değerlendir.
+1. Sunucuda test DB ve test alanını doğrula; ayrı sürüm klasörüne paketi çıkar. Yalnız public klasörü web kökü olmalı. .env, vendor, storage, kurulum dosyaları ve loglar internetten erişilemez olmalı. Dizin listelemeyi kapat ve HTTPS'yi doğrula.
+2. .env yalnız sunucuda: test DB parolası, benzersiz APP_KEY, APP_ENV=staging, APP_DEBUG=false, HTTPS APP_URL, güvenli çerez ve ayrı test oturumu. E-posta gönderimi kapalı.
+3. Cron'un PHP CLI sürümünün 8.4 ve gerekli uzantıların etkin olduğunu çalıştırarak doğrula; web PHP seçimi bunu tek başına kanıtlamaz. Mevcut cron işlerini değiştirme.
+4. Yetkili özel kurulum işiyle ilk kurulumda key:generate --force, migrate --force çalıştır; hostingde migrate:fresh kullanma. Sonraki dağıtımda mevcut APP_KEY korunur. Görev çıktısı yalnız özel dosyaya, e-postasız yazılmalı. Tek seferlik kurulumun tekrar çalışmasını engelle ve tamamlanınca geçici işi kaldır.
+5. storage/app/private/bootstrap-users.json dosyasını yalnız sunucuda oluştur (0600). Bu dosya en fazla 10 kayıt içerir: username, email, name, role (admin/representative), can_view_all_finance (boolean). En az bir yönetici şart. Dosyada parola yoktur. Onaylı gerçek kullanıcı listesi Git/paket yerine yerel özel kurulum kaydındadır.
+6. `php artisan koza:bootstrap-invitations --no-interaction` komutunu özel kurulum işinden çalıştır. İlk batch yalnız boş kullanıcı/davet tablolarında oluşturulur; komut tekrarları davetleri yenilemez. Çıktı kodları storage/app/private/bootstrap-invitations.json dosyasında 0600 izniyle bulunur; konsola veya e-postaya yazılmaz. Bu dosyayı web köküne koyma, Git'e ekleme veya log olarak paylaşma.
+7. Kodları yetkili kullanıcıya güvenli şekilde teslim et; otomatik e-posta yok. Kullanıcı HTTPS /activate ekranında kodunu ve kendi parolasını girer. Kod 24 saat sonra biter ve tek kullanımlıktır. Nigar için genel finans, Tunç için genel finans olmadan yönetici planı uygulanır. Parola belirleme işlemini kullanıcının kendisi tamamlamalıdır.
+8. Süresi dolmuş/iptal edilmiş davet için herkese açık yenileme veya parola sıfırlama yoktur. Bu sürümde yenileme ekranı bulunmaz; ilk kurulum kodları kullanıcı hazırken üretilmeli. İlk batch dosyasını silip komutu tekrar çalıştırmak yeni kod üretmez. Kontrollü davet yenileme sonraki idari işlevdir.
+9. Giriş/çıkış, firma revizyonu, rol ve özel dosya erişim testlerini HTTPS üzerinde yap. Kullanılmış kod yeniden hesap açamamalı. Hata/erişim günlüklerine gövde veya gizli kod yazılmadığını doğrula.
+10. Geri dönüş uygulama sürümünü değiştirerek yapılır; migration down ile kullanıcı/davet/geçmiş tabloları silinmez.
 
-Bu liste işletim hazırlığıdır, kullanıcı kılavuzunun yeni sürümü değildir. Kılavuz v0.3.0 değiştirilmedi.
+İlk davet oluşturma yolu Cron ile uyumludur; gerçek hosting kurulumu ve CLI sürümü henüz doğrulanmış değildir. Bu belge uygulanmış kurulum kaydı değildir.

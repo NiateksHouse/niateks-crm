@@ -15,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Company::class, CompanyPolicy::class);
+        RateLimiter::for('activation', fn (Request $r) => Limit::perMinute(10)->by('activation:'.$r->ip()));
         RateLimiter::for('login', fn (Request $r) => [
             Limit::perMinute(20)->by('ip:'.$r->ip()),
             Limit::perMinute(5)->by('account:'.hash('sha256', strtolower(trim((string) $r->input('username'))))),

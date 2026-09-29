@@ -69,3 +69,15 @@ replay = urllib.request.build_opener(NoRedirect())
 replay.addheaders = [('Cookie', saved_cookie)]
 assert request(replay, '/companies')[0] == 302
 print('HTTP checks passed: guest access, CSRF, login, shared company write, security headers, logout and session replay.')
+
+activation, activation_jar = client()
+status, _, form = request(activation, '/activate')
+assert status == 200 and 'Davet kodu' in form
+body = {'invitation_code':'f' * 64, 'password':'HTTP-Activation-Fixture-782!', 'password_confirmation':'HTTP-Activation-Fixture-782!'}
+assert request(activation, '/activate', body)[0] == 419
+assert request(activation, '/activate', body | {'_token':token(form)})[0] == 302
+status, _, login_page = request(activation, '/login')
+assert status == 200
+assert request(activation, '/login', {'_token':token(login_page), 'username':'http_invited', 'password':'HTTP-Activation-Fixture-782!'})[0] == 302
+assert request(activation, '/companies')[0] == 200
+print('Real HTTP invitation activation, CSRF and newly activated account login passed.')

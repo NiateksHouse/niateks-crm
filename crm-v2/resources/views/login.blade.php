@@ -18,6 +18,7 @@
             <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="256">
             <button class="login-submit">Giriş yap <span aria-hidden="true">→</span></button>
         </form>
+        <p><a href="{{ route('activation.create') }}">Davet kodum var · İlk giriş</a></p>
         <p class="login-help">Giriş bilgilerinizi bilmiyorsanız yöneticinizle görüşün.</p>
         @if(! app()->environment('production'))<p class="test-note">Test ortamı · Deneme kayıtlarıyla çalışın.</p>@endif
     </section>
