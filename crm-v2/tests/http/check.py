@@ -81,3 +81,45 @@ assert status == 200
 assert request(activation, '/login', {'_token':token(login_page), 'username':'http_invited', 'password':'HTTP-Activation-Fixture-782!'})[0] == 302
 assert request(activation, '/companies')[0] == 200
 print('Real HTTP invitation activation, CSRF and newly activated account login passed.')
+
+
+# Real multipart upload through session + CSRF middleware, never a real company file.
+def upload_document(opener, csrf=None):
+    boundary = 'KozaSyntheticMultipartBoundary27'
+    fields = {'name':'HTTP Private Document', 'category_id':'1', 'document_date':'2026-09-30', 'visibility':'private'}
+    if csrf is not None:
+        fields['_token'] = csrf
+    chunks = []
+    for name, value in fields.items():
+        chunks.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n{value}\r\n')
+    chunks.append(f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="http-fixture.pdf"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4\n% Synthetic CI document\n%%EOF\n\r\n--{boundary}--\r\n')
+    req = urllib.request.Request(BASE+'/documents', ''.join(chunks).encode(), {'Content-Type':f'multipart/form-data; boundary={boundary}'})
+    try:
+        response = opener.open(req, timeout=5)
+    except urllib.error.HTTPError as error:
+        response = error
+    return response.code, response.headers, response.read().decode()
+
+docs, _ = client()
+_, _, form = request(docs, '/login')
+assert request(docs, '/login', {'_token':token(form), 'username':'http_document_owner', 'password':'Disposable-http-fixture-782!'})[0] == 302
+status, _, form = request(docs, '/documents/create')
+assert status == 200
+assert upload_document(docs)[0] == 419
+status, headers, _ = upload_document(docs, token(form))
+assert status == 302
+location = headers['Location'].replace(BASE, '')
+assert re.fullmatch('/documents/[0-9]+', location), location
+status, _, html = request(docs, location)
+assert status == 200 and 'HTTP Private Document' in html
+preview = re.search(r'href="([^"]+/documents/[0-9]+/versions/[0-9]+/preview)"', html).group(1).replace(BASE, '')
+status, headers, data = request(docs, preview)
+assert status == 200 and data.startswith('%PDF-')
+assert headers['X-Content-Type-Options'] == 'nosniff'
+assert 'sandbox' in headers['Content-Security-Policy']
+assert 'no-store' in headers['Cache-Control']
+assert request(activation, preview)[0] == 404, 'Another active user must not read private files'
+assert 'HTTP Private Document' not in request(activation, '/documents?q=HTTP')[2]
+assert request(opener, preview)[0] == 302, 'Guest must authenticate before file access'
+assert request(docs, '/logout', {'_token':token(html)})[0] == 302
+print('Real HTTP document checks passed: multipart CSRF, private upload, sandboxed preview, ACL and guest gate.')

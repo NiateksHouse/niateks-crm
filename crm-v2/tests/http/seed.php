@@ -20,3 +20,8 @@ AccountInvitation::create([
     'role' => 'representative', 'can_view_all_finance' => false,
     'token_hash' => hash('sha256', str_repeat('f', 64)), 'expires_at' => now()->addHour(),
 ]);
+
+User::forceCreate([
+    'name' => 'HTTP Document Owner', 'username' => 'http_document_owner', 'email' => 'http-documents@example.test',
+    'password' => 'Disposable-http-fixture-782!', 'role' => 'admin', 'active' => true,
+]);

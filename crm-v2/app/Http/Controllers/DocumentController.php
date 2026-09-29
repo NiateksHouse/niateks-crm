@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
 class DocumentController
@@ -75,7 +76,7 @@ class DocumentController
         $data['allowed_users'] = in_array($data['visibility'], ['private', 'users'], true) ? array_map('intval', $data['allowed_users'] ?? []) : [];
         $data['allowed_roles'] = in_array($data['visibility'], ['private', 'roles'], true) ? array_values($data['allowed_roles'] ?? []) : [];
         if (($data['visibility'] === 'users' && ! $data['allowed_users']) || ($data['visibility'] === 'roles' && ! $data['allowed_roles'])) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['visibility' => 'Seçili erişim için en az bir kullanıcı veya rol seçin.']);
+            throw ValidationException::withMessages(['visibility' => 'Seçili erişim için en az bir kullanıcı veya rol seçin.']);
         }
 
         return $data;
