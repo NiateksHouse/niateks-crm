@@ -8,5 +8,7 @@ Route::middleware('guest')->group(function () {
 });
 Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
+    Route::post('/supply-categories', [App\Http\Controllers\SupplyCategoryController::class, 'store'])->name('supply-categories.store');
+    Route::get('/companies/{company}/history', [CompanyController::class, 'history'])->name('companies.history');
     Route::resource('companies', CompanyController::class);
 });

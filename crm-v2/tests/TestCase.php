@@ -22,7 +22,7 @@ abstract class TestCase extends BaseTestCase
     }
     protected function companyData(): array
     {
-        return ['name' => 'Example Textile', 'country_code' => 'GB', 'city' => 'London',
+        return ['roles'=>['customer'], 'name' => 'Example Textile', 'country_code' => 'GB', 'city' => 'London',
             'email' => 'hello@example.test', 'phone' => '+442012345678'];
     }
 }

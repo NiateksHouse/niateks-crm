@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 use App\Http\Requests\CompanyRequest;
-use App\Models\Company;
+use App\Models\{Company, SupplyCategory};
 use App\Services\CompanyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -10,14 +10,20 @@ class CompanyController
     public function index(Request $request)
     {
         Gate::authorize('viewAny', Company::class);
-        $data = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
+        $data = $request->validate(['q' => ['nullable', 'string', 'max:100'], 'role'=>['nullable','in:customer,supplier'], 'category'=>['nullable','integer','exists:supply_categories,id']]);
         $q = trim($data['q'] ?? '');
-        $companies = Company::query()->when($q !== '', fn ($query) => $query->where('name', 'like', str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q).'%'))->orderBy('name')->paginate(25)->withQueryString();
-        return view('companies.index', compact('companies', 'q'));
+        $companies = Company::query()->when($data['role'] ?? null, fn($query,$role)=>$query->whereJsonContains('roles',$role))->when($data['category'] ?? null, fn($query,$id)=>$query->whereJsonContains('roles','supplier')->whereHas('supplyCategories', fn($c)=>$c->where('supply_categories.id',$id)))->when($q !== '', fn ($query) => $query->where('name', 'like', str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q).'%'))->orderBy('name')->paginate(25)->withQueryString();
+        return view('companies.index', ['companies'=>$companies,'q'=>$q,'categories'=>SupplyCategory::orderBy('name')->get()]);
     }
-    public function create() { Gate::authorize('create', Company::class); return view('companies.form', ['company' => new Company]); }
+    public function create() { Gate::authorize('create', Company::class); return view('companies.form', ['company' => new Company, 'categories'=>SupplyCategory::orderBy('name')->get()]); }
     public function show(Company $company) { Gate::authorize('view', $company); return view('companies.show', compact('company')); }
-    public function edit(Company $company) { Gate::authorize('update', $company); return view('companies.form', compact('company')); }
+    public function edit(Company $company) { Gate::authorize('update', $company); return view('companies.form', ['company'=>$company, 'categories'=>SupplyCategory::orderBy('name')->get()]); }
+    public function history(Company $company)
+    {
+        Gate::authorize('view', $company);
+        $revisions=$company->revisions()->with('actor:id,name')->where('version','<',$company->version)->orderByDesc('version')->paginate(10);
+        return view('companies.history', compact('company','revisions'));
+    }
     public function store(CompanyRequest $request, CompanyService $service)
     {
         $company = $service->save($request->user(), $request->validated());
@@ -26,7 +32,7 @@ class CompanyController
     public function update(CompanyRequest $request, Company $company, CompanyService $service)
     {
         $company = $service->save($request->user(), $request->validated(), $company);
-        return redirect()->route('companies.show', $company)->with('status', 'Firma kartı güncellendi.');
+        return redirect()->route('companies.show', $company)->with('status', 'Yeni bilgi kaydedildi; önceki bilgiler geçmişte korundu.');
     }
     public function destroy(Request $request, Company $company, CompanyService $service)
     {

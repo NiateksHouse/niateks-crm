@@ -31,12 +31,12 @@ class AccessTest extends TestCase
         for ($i=0; $i<5; $i++) $this->post('/login', ['username'=>'rep','password'=>'wrong']);
         $this->post('/login', ['username'=>'rep','password'=>'wrong'])->assertStatus(429);
     }
-    public function test_company_is_shared_but_another_rep_cannot_edit_or_archive(): void
+    public function test_company_is_shared_and_another_rep_can_add_revision_but_not_archive(): void
     {
         $owner = $this->user('owner');
         $company = app(CompanyService::class)->save($owner, $this->companyData());
         $this->actingAs($this->user('other'))->get('/companies/'.$company->id)->assertOk()->assertSee('Example Textile');
-        $this->put('/companies/'.$company->id, $this->companyData()+['version'=>1])->assertForbidden();
+        $this->put('/companies/'.$company->id, $this->companyData()+['version'=>1])->assertRedirect();
         $this->delete('/companies/'.$company->id, ['version'=>1])->assertForbidden();
     }
     public function test_admin_archives_without_destroying_record_and_writes_audit(): void

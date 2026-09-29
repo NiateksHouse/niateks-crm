@@ -6,6 +6,8 @@ class Company extends Model
 {
     use SoftDeletes;
     protected $fillable = ['name', 'country_code', 'city', 'email', 'phone'];
-    protected function casts(): array { return ['version' => 'integer', 'created_by' => 'integer']; }
+    protected function casts(): array { return ['version' => 'integer', 'created_by' => 'integer', 'roles' => 'array']; }
+    public function supplyCategories() { return $this->belongsToMany(SupplyCategory::class); }
+    public function revisions() { return $this->hasMany(CompanyRevision::class); }
     protected $hidden = ['identity_key'];
 }

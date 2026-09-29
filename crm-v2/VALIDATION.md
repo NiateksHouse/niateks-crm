@@ -1,10 +1,5 @@
-# Kontrol durumu — alpha.15
+# Alpha.17 validation
 
-- Kaynak dosya envanteri ve JSON/XML biçimi: yerel Python kontrolüyle doğrulandı. Bu PHP kod doğrulaması değildir.
-- PHP sözdizimi: PHP 8.4.25 ile 25 PHP/artisan dosyasında php -l geçti. Blade derleme ve Pint henüz çalışmadı.
-- Composer 2.10.2 kuruldu; composer validate --strict --no-check-publish geçti. composer install denendi: repo.packagist.org DNS çözümlemesi curl error 6 nedeniyle başarısız. Dependency resolution, audit ve PHPUnit çalışmadı.
-- 11 MySQL feature test senaryosu yazıldı; ÇALIŞTIRILMADI.
-- Gerçek tarayıcı/CSRF/oturum testi: ÇALIŞTIRILMADI.
-- Sunucu yayını/migration: YAPILMADI.
+PHP syntax checked locally. Behavioral tests require the isolated MySQL CI database ending in _ci; never run migrate:fresh against hosting databases. CI includes role/category filters, shared revision access, historical snapshots, concurrent update rejection, category administration and input validation, plus authentication and archive tests.
 
-Kaynak paket hiçbir koşulda “testleri geçti” veya “yayına hazır” olarak sunulmaz.
+Results: refer to the GitHub Actions run for the current commit; do not reuse alpha.16 results. No hosting deployment or browser end-to-end verification is claimed. PHPUnit does not prove browser CSRF behavior. Source ZIP is not a deployment package.
