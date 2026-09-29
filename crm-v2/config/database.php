@@ -2,6 +2,7 @@
 
 return [
     'default' => 'mysql',
+    'disposable_test_database' => env('DB_DISPOSABLE_TEST_DATABASE'),
     'connections' => ['mysql' => [
         'driver' => 'mysql', 'host' => env('DB_HOST', 'localhost'),
         'port' => env('DB_PORT', '3306'), 'database' => env('DB_DATABASE'),

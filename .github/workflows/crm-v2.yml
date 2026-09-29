@@ -32,11 +32,12 @@ jobs:
     env:
       DB_HOST: 127.0.0.1
       DB_DATABASE: koza_ci
+      DB_DISPOSABLE_TEST_DATABASE: koza_ci
       DB_USERNAME: koza_ci
       DB_PASSWORD: ci-disposable-only
       APP_ENV: testing
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           persist-credentials: false
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
@@ -56,6 +57,8 @@ jobs:
       - run: composer audit
       - name: PHP syntax
         run: find app bootstrap config database routes tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Individual upgrade regression
+        run: php vendor/bin/phpunit --filter=test_upgrade_keeps_existing_users_and_companies
       - name: MySQL feature tests
         run: composer test
       - name: Blade compilation
@@ -77,9 +80,9 @@ jobs:
           php artisan view:clear
           mkdir -p /tmp/koza-build
           tar --exclude='./.phpunit.cache' --exclude='./vendor' --exclude='./.env' --exclude='./storage/logs/*' --exclude='./bootstrap/cache/*.php' --exclude='./storage/framework/views/*.php' -czf /tmp/koza-build/source-with-lock.tar.gz .
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: koza-alpha24-reviewed-source
+          name: koza-alpha25-reviewed-source
           path: /tmp/koza-build/source-with-lock.tar.gz
           retention-days: 7
           if-no-files-found: error
@@ -89,11 +92,11 @@ jobs:
           composer check-platform-reqs --no-dev
           composer audit --no-dev
           python3 tools/build_release.py
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: koza-alpha24-runtime
+          name: koza-alpha25-runtime
           path: |
-            /tmp/koza-build/koza-crm-v2.0.0-alpha.24-runtime.zip
+            /tmp/koza-build/koza-crm-v2.0.0-alpha.25-runtime.zip
             /tmp/koza-build/SHA256SUMS.txt
           retention-days: 7
           if-no-files-found: error

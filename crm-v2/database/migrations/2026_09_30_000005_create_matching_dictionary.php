@@ -89,6 +89,27 @@ return new class extends Migration
 
     public function down(): void
     {
-        throw new RuntimeException('Forward-only matching migration: restore reviewed backup instead of deleting learning history.');
+        if (! app()->environment('testing')) {
+            throw new RuntimeException('Forward-only matching migration: restore reviewed backup instead of deleting learning history.');
+        }
+        \App\Support\DisposableTestDatabase::assertSafe();
+
+        // Restore the old uniqueness rules without deleting or rewriting company rows.
+        // Refuse BEFORE DDL if intentional duplicates now make those rules impossible.
+        foreach (['identity_key', 'email', 'phone'] as $column) {
+            if (DB::table('companies')->whereNotNull($column)->groupBy($column)->havingRaw('COUNT(*) > 1')->exists()) {
+                throw new RuntimeException('Cannot restore company uniqueness while duplicates exist; use migrate:fresh only on the disposable database.');
+            }
+        }
+        foreach (['matching_events', 'matching_keys', 'self_learning_company_dictionary', 'matching_decisions', 'matching_settings', 'contacts'] as $table) {
+            Schema::dropIfExists($table);
+        }
+        Schema::table('companies', function (Blueprint $t) {
+            foreach (['identity_key', 'email', 'phone'] as $column) {
+                $t->dropIndex('companies_'.$column.'_index');
+                $t->unique($column);
+            }
+            $t->dropColumn(['website', 'tax_number']);
+        });
     }
 };
