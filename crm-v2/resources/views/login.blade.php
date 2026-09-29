@@ -1,12 +1,13 @@
 @extends('layout')
 @section('content')
 <div class="login-shell">
-    <section class="login-scene" aria-label="Niateks House tekstil atölyesi">
-        <img src="{{ asset('assets/login-bg.jpg') }}" alt="Doğal kumaşlarla hazırlanmış, ahşap çalışma masalı Niateks House atölyesi" fetchpriority="high" width="1536" height="1024">
-        <div class="scene-caption"><p>NIATEKS HOUSE</p><h1>Birlikte güzel<br>işler üretelim.</h1><p>İnsan, tasarım ve emeğin buluştuğu yer.</p></div>
+    <section class="intro" aria-label="KOZA">
+        <p class="eyebrow">İLİŞKİLERDEN ÜRETİME</p>
+        <h1>Her detay,<br>bir bütüne ait.</h1>
+        <p>Müşterileriniz, projeleriniz ve ürünleriniz<br>aynı çalışma alanında.</p>
     </section>
     <section class="login-panel" aria-labelledby="login-title">
-        <p class="eyebrow">ÇALIŞMA ALANINIZ</p>
+        <p class="eyebrow">KOZA ÇALIŞMA ALANI</p>
         <h2 id="login-title">Hoş geldiniz.</h2>
         <p class="login-intro">Kaldığınız yerden devam etmek için giriş yapın.</p>
         @if($errors->any())<div class="login-error" role="alert">Kullanıcı adı veya parolanızı kontrol edip tekrar deneyin.</div>@endif

@@ -7,7 +7,7 @@ import zipfile
 root = Path(__file__).resolve().parents[1]
 out = Path('/tmp/koza-build')
 out.mkdir(parents=True, exist_ok=True)
-archive = out / 'koza-crm-v2.0.0-alpha.20-runtime.zip'
+archive = out / 'koza-crm-v2.0.0-alpha.21-runtime.zip'
 files = []
 for name in ['app', 'config', 'database', 'public', 'vendor']:
     files.extend(f for f in (root / name).rglob('*') if f.is_file())
@@ -20,10 +20,17 @@ with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
         rel = f.relative_to(root).as_posix()
         assert rel != '.env' and not rel.startswith(('tests/', 'storage/', 'bootstrap/cache/'))
         data = f.read_bytes()
-        z.writestr(rel, data)
+        info = zipfile.ZipInfo(rel)
+        info.create_system = 3
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = (0o100644 if rel.startswith('public/') else 0o100600) << 16
+        z.writestr(info, data)
         manifest[rel] = hashlib.sha256(data).hexdigest()
     for directory in ['bootstrap/cache/', 'storage/app/private/', 'storage/framework/cache/data/', 'storage/framework/sessions/', 'storage/framework/views/', 'storage/logs/']:
-        z.writestr(directory, '')
+        info = zipfile.ZipInfo(directory)
+        info.create_system = 3
+        info.external_attr = (0o40755 << 16) | 0x10
+        z.writestr(info, '')
     z.writestr('MANIFEST.json', json.dumps(manifest, indent=2))
 with zipfile.ZipFile(archive) as z:
     assert z.testzip() is None
