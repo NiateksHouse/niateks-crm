@@ -1,31 +1,32 @@
-# Alpha.25 — güvenli test migration geri alma düzeltmesi
+# Alpha.26 — onaylı v1.6.0 çalışma alanı tasarımı
 30 Eylül 2026
 
-## Sonuç
-GitHub Actions mysql-tests başarılı: https://github.com/NiateksHouse/niateks-crm/actions/runs/36642756465
-Doğrulanan kod: a227578770d176fc2dc84461a450d2952598c210.
-PHP 8.4.26 / MySQL 8.0.46 / PHPUnit 12.5.37.
+Tasarım referansı: outputs/versiyonlar/koza-crm-interactive-demo-v1.6.0.html. Demo dosyası değiştirilmedi.
 
-- Tek regresyon: php vendor/bin/phpunit --filter=test_upgrade_keeps_existing_users_and_companies → 1 test, 8 assertion geçti.
-- composer test → 53 test, 354 assertion; hata/başarısızlık yok.
-- Strict Pint, PHP sözdizimi, Composer audit, Blade, gerçek HTTP oturum/CSRF/davet ve paketleme kontrolleri geçti.
-- Beş yeni test: şema ve ilgisiz kayıtların korunması; kalıcı ortamda koruma; eksik/yanlış geçici DB tanımında ret; eski unique kurallarıyla çelişen mükerrer veride işlem öncesi ret; geçici DB migrate:refresh döngüsü.
-- Önceki kullanıcı/firma korunma testi atlanmadı veya silinmedi; Laravel rollback/migrate üzerinden çalışıyor. İlk dört koruma assertion'ı korunup rollback sonrasında ek doğrulamalar eklendi.
-- Yerel MySQL yok; gerçek MySQL testleri CI servisinde çalıştırıldı. Yerelde değişen altı PHP dosyası syntax kontrolü geçti. SQLite kullanılmadı.
-- Projede Collision/artisan test sarmalayıcısı yok; eşdeğer doğrudan PHPUnit komutu ayrı zorunlu CI adımı olarak çalıştırıldı.
+## Doğrulama
+- Kod: e64d896438fde2fbd3f736c75d9b20f94fcfc7c1.
+- GitHub Actions: https://github.com/NiateksHouse/niateks-crm/actions/runs/36644499325
+- MySQL 8.0.46 / PHP 8.4: 56 test, 402 assertion başarılı. Ayrı upgrade regresyonu 1 test / 8 assertion başarılı.
+- Pint, PHP sözdizimi, Composer audit, Blade derleme, gerçek HTTP oturum/CSRF/davet ve paketleme başarılı.
+- Yeni kontroller: başlangıç ve genel görüşmelerde özel kayıtların kullanıcı bazlı görünürlüğü; arşivli firma kayıtlarının görünmemesi; aktif hesap gerekliliği; hazırlık ekranlarının açık etiketlenmesi.
+- Yerel JavaScript sözdizimi ve 100 benzersiz mola mesajı / üç tam karıştırılmış turda ardışık tekrar olmaması / günlük sayaç sıfırlama kontrolü geçti.
+- İlk CI denemesi eski giriş yönlendirmesini bekleyen ProvisioningTest assertion'ında durdu. Yeni Başlangıç yönlendirmesine göre güncellendi; yukarıdaki tam tekrar başarılı.
 
-## Kök neden ve davranış
-Eski 46-test çalıştırmasında migrate:rollback en yeni matching migration'ın down() metodunu çağırıyordu. Bu metot koşulsuz RuntimeException üretiyordu. Bağlantı problemi veya Node uyarısı değildi.
+## Davranış
+Onaylı tasarımın renkleri, sol logo/menü, ikonlar, başlangıç düzeni, müzik ve mola bileşenleri sunucu tarafındaki oturumlu CRM'ye taşındı. Girişten sonra /home açılır. Firma tablosu ve proje sütunları gerçek yetkili kayıtları gösterir. Mevcut görüşmeler ayrı ana menüden erişilir; firma sözlüğü ve kişiler Firma araçları altındadır.
 
-Önce: tüm ortamlarda down() engelleniyordu.
-Sonra: production/staging/local/development/ci_http yine engellenir. Yalnız testing + CLI + önbelleksiz ayar + MySQL + _ci adı + DB_DISPOSABLE_TEST_DATABASE açık tanımı ve gerçek bağlantı uyuşması halinde temizleme yapılır. Aynı kontrol PHPUnit migrate:fresh öncesinde de uygulanır.
+Müzik kullanıcı başlatmadan çalmaz; Jazz, Relax ve Akustik özgün WebAudio önizlemeleridir, canlı yayın değildir. Sayfa değişiminde durur. Mola sayacı aynı tarayıcıdaki kullanıcı kimliğine göre tutulur, etkin CRM süresi ve boşta kalma kullanılır; yazılan içerik kaydedilmez. Otomatik mesajlar günde en fazla dört, yaklaşık 50 dakikalık etkin kullanım sonrası gösterilir. Manuel Mola mesajı bu otomatik kotadan ayrıdır. Farklı cihazlarda ortak sayaç yoktur.
 
-Altı yeni tablo bağımlılık sırasıyla kaldırılır; firma tablosunun üç eski unique indeksi geri gelir ve yalnız yeni website/tax_number alanları kaldırılır. users/companies satırları ve ilgisiz tablolar korunur. Çelişen mükerrer firma varsa herhangi bir DDL'den önce ret verilir; veri silerek benzersizlik sağlanmaz. up() değişmedi. Kalıcı veritabanında geri alma/temizleme çalıştırılmadı.
+Ürün, iş takibi, numune, teklif, sipariş/üretim ve finans işlemleri henüz sunucuya bağlı değildir; sayfalarında Hazırlanıyor / Henüz kayıt alınmıyor yazısı vardır. Bu sürüm bunları tamamlandı saymaz. Sipariş kabulü kutlaması, yedi aşamalı teklif kanbanı ve sürükleyerek durum değiştirme henüz etkin değildir. Dokümanlar ve Yardım Merkezi son aşama planında kalır. Kılavuz v0.3.0 değiştirilmedi; güncellemesi ayrıca onay gerektirir.
 
-## GitHub Actions
-Checkout ve upload-artifact resmi v7.0.1 / Node24 SHA'larına sabitlendi; setup-php zaten Node24'tü. Başarılı iş günlüğünde Node.js20 kullanımdan kalkma uyarısı yok. SHA'lar ve tam şema/ortam incelemesi MIGRATION-SAFETY.md içinde.
+## Yayınlama
+Alpha.24 üstüne 18 dosyalık kontrollü güncelleme. Migration çalıştırılmaz; veritabanı yeniden kurulmaz. Alpha.25 güvenli test geri alma kaynakları dahil edilir, kalıcı ortam koruması sürer. Eski dosya hash'leri doğrulanır, değişen dosyalar yalnız sunucuda storage/app/private/alpha26-previous altında saklanır. Yerel SSD'ye hosting/veritabanı yedeği indirilmez. Canlı koza.niateks.com ve diğer siteler kapsam dışıdır.
 
-## Teslim ve sınırlar
-Kaynak sürümü 2.0.0-alpha.25. Önceki paketler korundu. Bu CI/kaynak düzeltmesi hosting'e uygulanmadı; test CRM hâlâ Alpha.24, canlı değiştirilmedi. PR taslak olarak kaldı.
-Laravel migrate:fresh doğrudan down() çağırmadan şema siler; yalnız bu migration'ın exception'ı bütün yönetici komutlarını korumaz. Test giriş noktası korundu; kalıcı ortamlarda ayrı DB yetkisi ve yedek/geri yükleme prosedürü gerekir. Yedek geri yükleme tatbikatı yapılmış sayılmaz.
-Kullanım kılavuzuna değişiklik yapılmadı.
+## Hosting ve tarayıcı sonucu
+- 29 Eylül 2026 23:22:01 UTC: kurulum sonucu success, 18 dosya, unchanged_no_migration_run.
+- Chrome oturumunda yeni Başlangıç, firma kartı, özel proje sütunları, genel görüşmeler ve üretim hazırlık ekranı açıldı; mevcut DEMO firma/proje ve görüşme Revizyon 2 korundu.
+- Müzik Çal → Sessize al → Durdur, manuel mola aç/kapat doğrulandı; konsolda hata/uyarı görülmedi.
+- Dar görünüm kontrolünde belge genişliği ekran genişliğine uydu (tarayıcı etkin CSS genişliği yaklaşık 487px); geçici viewport ayarı geri alındı.
+- Giriş ekranı, parola göster düğmesi ve Alpha.26 etiketi doğrulandı. Oturum son kontrolde sona erdi; kullanıcı yeniden giriş yapmalıdır.
+- Sürüm yazısı için ilk cPanel editör düzenlemesi hatalı metin üretti. Tam, doğrulanmış kaynak şablonu koza-crm-v2.0.0-alpha.26-label-fix.zip üzerinden geri yerleştirildi; hatalı kaydedilmemiş editör sekmesi kapatıldı. Son fark yalnız iki sürüm metninin Alpha.24 → Alpha.26 değişimidir; davranış değişikliği yok, giriş sayfası tekrar doğrulandı.
+- Kullanıcının açık onayıyla yalnız updates/alpha26/deploy.php geçici Cron kaldırıldı. Mevcut saatlik niateks_app/cron_report.php görevi listede korundu.
