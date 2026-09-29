@@ -7,7 +7,9 @@ use App\Models\Activity;
 use App\Models\Company;
 use App\Models\SupplyCategory;
 use App\Services\CompanyService;
+use App\Services\DuplicateMatcher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class CompanyController
@@ -55,14 +57,15 @@ class CompanyController
 
     public function store(CompanyRequest $request, CompanyService $service)
     {
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $service) {
-            \Illuminate\Support\Facades\DB::table('matching_settings')->where('id', 1)->lockForUpdate()->first();
+        return DB::transaction(function () use ($request, $service) {
+            DB::table('matching_settings')->where('id', 1)->lockForUpdate()->first();
             $data = $request->validated();
-            $result = app(\App\Services\DuplicateMatcher::class)->find('company', $data, $request->user());
-            if ($request->input('intent') === 'review' || collect($result['matches'])->contains(fn($m) => $m['level'] !== 'low')) {
+            $result = app(DuplicateMatcher::class)->find('company', $data, $request->user());
+            if ($request->input('intent') === 'review' || collect($result['matches'])->contains(fn ($m) => $m['level'] !== 'low')) {
                 return app(MatchingController::class)->preview($request, 'company', $data, $result);
             }
             $company = $service->save($request->user(), $data, null, true);
+
             return redirect()->route('companies.show', $company)->with('status', 'Firma kartı oluşturuldu.');
         });
     }

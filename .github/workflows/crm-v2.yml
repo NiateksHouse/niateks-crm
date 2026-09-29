@@ -47,16 +47,6 @@ jobs:
           coverage: none
       - run: composer validate --strict --no-check-publish
       - run: composer install --no-interaction --prefer-dist
-      - run: php vendor/bin/pint
-      - name: Export formatting for review
-        run: |
-          python3 - <<'PY'
-          import json,base64,subprocess
-          from pathlib import Path
-          names=subprocess.check_output(['git','diff','--name-only'],text=True).splitlines()
-          files={n:Path('../'+n).read_text() for n in names if n.startswith('crm-v2/') and n.endswith('.php')}
-          print('FORMATTED_SOURCE='+base64.b64encode(json.dumps(files).encode()).decode())
-          PY
       - run: composer lint
       - run: composer audit
       - name: PHP syntax

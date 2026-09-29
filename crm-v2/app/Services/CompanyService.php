@@ -38,7 +38,7 @@ class CompanyService
                         $q->orWhere('phone', $data['phone']);
                     }
                 })->when($company->exists, fn ($q) => $q->where('id', '!=', $company->id))->exists();
-                if ($duplicate && !$reviewed) {
+                if ($duplicate && ! $reviewed) {
                     throw ValidationException::withMessages(['name' => 'Benzer bir firma kaydı var. Yeni kart açmadan mevcut firmayı kontrol edin.']);
                 }
                 $company->fill(collect($data)->only(['name', 'country_code', 'city', 'email', 'phone', 'website', 'tax_number'])->all());

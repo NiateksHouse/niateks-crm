@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Activity;
 use App\Services\CompanyService;
 use App\Services\ProjectService;
-use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class ProjectActivityTest extends TestCase
