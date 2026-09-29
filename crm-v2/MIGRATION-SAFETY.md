@@ -42,3 +42,14 @@ The project has PHPUnit directly, without Collision's `artisan test` wrapper. Th
 Checkout v7.0.1: 3d3c42e5aac5ba805825da76410c181273ba90b1, Node 24.
 Upload-artifact v7.0.1: 043fb46d1a93c77aae656e7c1c64a875d1fc6a0a, Node 24.
 Setup-php retained at f3e473d116dcccaddc5834248c87452386958240; its action.yml already specifies Node 24.
+
+## Changed files
+- database/migrations/2026_09_30_000005_create_matching_dictionary.php: guarded full test-only schema reversal, duplicate preflight, unchanged persistent exception.
+- app/Support/DisposableTestDatabase.php: shared fail-closed disposable database validation, including actual connection target.
+- config/database.php: explicit disposable database designation, unset by default.
+- tests/TestCase.php: validate target before the existing destructive test setup.
+- tests/Feature/ProjectActivityTest.php: original upgrade test exercises real rollback/migrate, keeps original assertions and verifies rows also survive rollback.
+- tests/Feature/MatchingMigrationTest.php: five tests for schema/data preservation, environment denial, target mismatch, conflicting uniqueness and refresh.
+- .github/workflows/crm-v2.yml and ci-workflow.yml reference: explicit ephemeral database designation, separate focused regression, Node24 SHA pins, alpha25 artifacts.
+- tools/build_release.py: new versioned artifact name; earlier packages remain intact.
+- LOCAL-SETUP.md, VALIDATION.md and this document: commands, results and operational limitations.
