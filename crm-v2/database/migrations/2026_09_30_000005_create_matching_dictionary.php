@@ -98,7 +98,7 @@ return new class extends Migration
         // Restore the old uniqueness rules without deleting or rewriting company rows.
         // Refuse BEFORE DDL if intentional duplicates now make those rules impossible.
         foreach (['identity_key', 'email', 'phone'] as $column) {
-            if (DB::table('companies')->whereNotNull($column)->groupBy($column)->havingRaw('COUNT(*) > 1')->exists()) {
+            if (DB::table('companies')->select($column)->whereNotNull($column)->groupBy($column)->havingRaw('COUNT(*) > 1')->exists()) {
                 throw new RuntimeException('Cannot restore company uniqueness while duplicates exist; use migrate:fresh only on the disposable database.');
             }
         }
