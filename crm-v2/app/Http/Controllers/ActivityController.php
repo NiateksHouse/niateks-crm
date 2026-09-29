@@ -81,6 +81,6 @@ class ActivityController
 
     private function back(Activity $activity)
     {
-        return $activity->project_id ? redirect()->route('projects.show', $activity->project_id)->with('status', 'Görüşme kaydedildi; firma akışına da yansıdı.') : redirect()->route('companies.show', $activity->company_id)->with('status','Görüşme kaydedildi.');
+        return $activity->project_id ? redirect()->route('projects.show', $activity->project_id)->with('status', 'Görüşme kaydedildi; firma akışına da yansıdı.') : redirect()->route('companies.show', $activity->company_id)->with('status', 'Görüşme kaydedildi.');
     }
 }
