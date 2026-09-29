@@ -3,11 +3,12 @@ from pathlib import Path
 import hashlib
 import json
 import zipfile
+import datetime
 
 root = Path(__file__).resolve().parents[1]
 out = Path('/tmp/koza-build')
 out.mkdir(parents=True, exist_ok=True)
-archive = out / 'koza-crm-v2.0.0-alpha.21-runtime.zip'
+archive = out / 'koza-crm-v2.0.0-alpha.22-runtime.zip'
 files = []
 for name in ['app', 'config', 'database', 'public', 'vendor']:
     files.extend(f for f in (root / name).rglob('*') if f.is_file())
@@ -20,7 +21,7 @@ with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
         rel = f.relative_to(root).as_posix()
         assert rel != '.env' and not rel.startswith(('tests/', 'storage/', 'bootstrap/cache/'))
         data = f.read_bytes()
-        info = zipfile.ZipInfo(rel)
+        info = zipfile.ZipInfo(rel, datetime.datetime.now().timetuple()[:6])
         info.create_system = 3
         info.compress_type = zipfile.ZIP_DEFLATED
         info.external_attr = (0o100644 if rel.startswith('public/') else 0o100600) << 16

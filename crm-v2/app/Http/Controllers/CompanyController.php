@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CompanyRequest;
 use App\Models\Company;
+use App\Models\Activity;
 use App\Models\SupplyCategory;
 use App\Services\CompanyService;
 use Illuminate\Http\Request;
@@ -28,11 +29,13 @@ class CompanyController
         return view('companies.form', ['company' => new Company, 'categories' => SupplyCategory::orderBy('name')->get()]);
     }
 
-    public function show(Company $company)
+    public function show(Request $request, Company $company)
     {
         Gate::authorize('view', $company);
 
-        return view('companies.show', compact('company'));
+        $activities = Activity::visibleTo($request->user())->where('company_id', $company->id)->with(['latestRevision.actor','project'])->latest('updated_at')->orderByDesc('id')->paginate(20);
+
+        return view('companies.show', compact('company','activities'));
     }
 
     public function edit(Company $company)
