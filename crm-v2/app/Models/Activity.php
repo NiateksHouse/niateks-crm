@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Activity extends Model
 {
     protected $guarded = ['id'];
+    protected $attributes = ['version' => 1];
     public const KINDS = ['note'=>'Not', 'call'=>'Telefon görüşmesi', 'meeting'=>'Toplantı', 'email_in'=>'Gelen e-posta', 'email_out'=>'Giden e-posta'];
 
     public function scopeVisibleTo(Builder $query, User $user): Builder
