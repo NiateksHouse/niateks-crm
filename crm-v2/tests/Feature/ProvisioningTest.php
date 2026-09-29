@@ -28,7 +28,7 @@ class ProvisioningTest extends TestCase
             ->expectsQuestion('Parolayı tekrar girin', 'Fixture-only-Password-928!')
             ->assertSuccessful();
         $this->assertTrue(User::firstOrFail()->can_view_all_finance);
-        $this->post('/login', ['username' => 'finance', 'password' => 'Fixture-only-Password-928!'])->assertRedirect('/companies');
+        $this->post('/login', ['username' => 'finance', 'password' => 'Fixture-only-Password-928!'])->assertRedirect('/home');
         $this->assertAuthenticated();
     }
 
