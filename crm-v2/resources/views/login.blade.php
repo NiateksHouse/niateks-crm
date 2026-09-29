@@ -1,0 +1,2 @@
+@extends('layout')
+@section('content')<section class="card narrow"><h1>Hoş geldiniz</h1><p>İşlerinize devam etmek için giriş yapın.</p><form method="post" action="{{ route('login') }}">@csrf<label for="username">Kullanıcı adı</label><input id="username" name="username" value="{{ old('username') }}" autocomplete="username" required maxlength="80"><label for="password">Parola</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="256"><button>Giriş yap</button></form></section>@endsection

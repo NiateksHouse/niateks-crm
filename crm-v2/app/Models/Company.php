@@ -1,0 +1,11 @@
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+class Company extends Model
+{
+    use SoftDeletes;
+    protected $fillable = ['name', 'country_code', 'city', 'email', 'phone'];
+    protected function casts(): array { return ['version' => 'integer', 'created_by' => 'integer']; }
+    protected $hidden = ['identity_key'];
+}
