@@ -13,4 +13,4 @@ Bu paket tam CRM değildir. Yalnız giriş, ilk hesap daveti ve firma altyapıs�
 9. Giriş/çıkış, firma revizyonu, rol ve özel dosya erişim testlerini HTTPS üzerinde yap. Kullanılmış kod yeniden hesap açamamalı. Hata/erişim günlüklerine gövde veya gizli kod yazılmadığını doğrula.
 10. Geri dönüş uygulama sürümünü değiştirerek yapılır; migration down ile kullanıcı/davet/geçmiş tabloları silinmez.
 
-İlk davet oluşturma yolu Cron ile uyumludur; gerçek hosting kurulumu ve CLI sürümü henüz doğrulanmış değildir. Bu belge uygulanmış kurulum kaydı değildir.
+İlk davet oluşturma yolu Cron ile uyumludur; CLI sürümü 8.4.25 olarak doğrulandı; gerçek uygulama kurulumu henüz yapılmadı. Bu belge uygulanmış kurulum kaydı değildir.
