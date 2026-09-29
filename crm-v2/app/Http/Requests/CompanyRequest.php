@@ -22,6 +22,8 @@ class CompanyRequest extends FormRequest
             'city' => ['nullable', 'string', 'max:100'],
             'email' => ['nullable', 'email:rfc', 'max:190'],
             'phone' => ['nullable', 'string', 'max:40'],
+            'website' => ['nullable', 'url:http,https', 'max:190'],
+            'tax_number' => ['nullable', 'string', 'max:80'],
             'roles' => ['required', 'array', 'min:1', 'max:2'],
             'roles.*' => ['required', 'in:customer,supplier', 'distinct'],
             'supply_category_ids' => ['nullable', 'array', 'max:30'],

@@ -1,0 +1,13 @@
+@extends('layout')
+@section('content')<h1>Firma sözlüğü ve eşleşme kararları</h1>
+<p>Yalnız açık kullanıcı onayları öğrenilir. Puan tek başına kayıtları birleştirmez veya sözlüğe eklemez.</p>
+<section class="card"><h2>Onaylı isimler (son 100)</h2>@forelse($aliases as $a)<p>{{ $a->alias }} → <a href="{{ route('companies.show',$a->id) }}">{{ $a->name }}</a></p>@empty<p>Henüz onaylı isim varyasyonu yok.</p>@endforelse</section>
+<h2>Karar geçmişi</h2><p>{{ auth()->user()->isAdmin()?'Tüm kararlar':'Kendi kararlarınız' }}</p>
+@foreach($rows as $row)<section class="card"><p>#{{ $row->id }} · {{ $row->entity_type }} · {{ $row->decision==='same'?'Aynı kayıt':'Farklı kayıtlar' }} · Kullanıcı #{{ $row->actor_id }} · {{ $row->created_at }}</p><p>{{ $row->alias }} · {{ $row->reason }}</p><p>Kaynak: {{ $row->source_id ?? 'Yeni kayıt taslağı' }} → Hedef #{{ $row->target_id }}</p><details><summary>Eşleşme gerekçeleri ve ayarlar</summary><pre>{{ json_encode(json_decode($row->evidence),JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE) }}</pre></details>
+@if($row->revoked_at)<p>Geri alındı: {{ $row->revoked_at }} · Kullanıcı #{{ $row->revoked_by }} · {{ $row->revoke_reason }}</p>@elseif(auth()->user()->isAdmin())<form method="post" action="{{ route('matching.revoke',$row->id) }}">@csrf<label>Geri alma nedeni<input name="reason" required minlength="3" maxlength="1000"></label><button>Kararı geri al</button></form>@endif</section>@endforeach
+{{ $rows->links() }}
+@if(auth()->user()->isAdmin())<details class="card"><summary>Eşleşme ayarları</summary><form method="post" action="{{ route('matching.settings') }}">@csrf<input type="hidden" name="version" value="{{ $version }}">
+@foreach(['tax'=>'Vergi numarası','domain'=>'Web sitesi alan adı','email'=>'E-posta','phone'=>'Telefon','name'=>'Benzer isim','contact_company'=>'Aynı kişi + firma','location'=>'Şehir + ülke','alias'=>'Onaylı varyasyon','review_threshold'=>'İnceleme alt sınırı','strong_threshold'=>'Güçlü uyarı alt sınırı','name_similarity'=>'İsim benzerliği alt sınırı (%)'] as $k=>$label)<label>{{ $label }}<input type="number" name="{{ $k }}" value="{{ $settings[$k] }}" min="0" max="100" required></label>@endforeach
+<label>Değişiklik nedeni<input name="reason" required minlength="3" maxlength="1000"></label><button>Ayarları kaydet</button></form></details>
+<h2>Denetim olayları</h2>@foreach($events as $event)<details class="card"><summary>#{{ $event->id }} · {{ $event->action }} · Kullanıcı #{{ $event->actor_id }} · {{ $event->created_at }}</summary><pre>{{ json_encode(json_decode($event->details),JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE) }}</pre></details>@endforeach {{ $events->links() }}@endif
+@endsection

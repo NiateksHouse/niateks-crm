@@ -68,7 +68,7 @@ class AccessTest extends TestCase
     {
         $u = $this->user();
         app(CompanyService::class)->save($u, $this->companyData());
-        $this->actingAs($u)->post('/companies', $this->companyData())->assertSessionHasErrors('name');
+        $this->actingAs($u)->post('/companies', $this->companyData())->assertOk()->assertSee('Olası mükerrer');
         $this->assertDatabaseCount('companies', 1);
         $this->assertDatabaseCount('audit_events', 1);
     }

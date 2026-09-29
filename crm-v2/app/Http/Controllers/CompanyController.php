@@ -55,7 +55,12 @@ class CompanyController
 
     public function store(CompanyRequest $request, CompanyService $service)
     {
-        $company = $service->save($request->user(), $request->validated());
+        $data = $request->validated();
+        $result = app(\App\Services\DuplicateMatcher::class)->find('company', $data, $request->user());
+        if ($request->input('intent') === 'review' || collect($result['matches'])->contains(fn($m) => $m['level'] !== 'low')) {
+            return app(MatchingController::class)->preview($request, 'company', $data, $result);
+        }
+        $company = $service->save($request->user(), $data, null, true);
 
         return redirect()->route('companies.show', $company)->with('status', 'Firma kartı oluşturuldu.');
     }

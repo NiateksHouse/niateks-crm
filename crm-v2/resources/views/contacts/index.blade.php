@@ -1,0 +1,2 @@
+@extends('layout')
+@section('content')<h1>Kişiler</h1><p>Yalnız yetkili olduğunuz kişileri görürsünüz. Yöneticiler tüm kişileri görebilir.</p><a class="button" href="{{ route('contacts.create') }}">Yeni kişi</a>@forelse($contacts as $c)<section class="card"><h2><a href="{{ route('contacts.show',$c) }}">{{ $c->name }}</a></h2><p>{{ $c->company->name }}</p></section>@empty<p>Henüz kişi kaydı yok.</p>@endforelse{{ $contacts->links() }}@endsection

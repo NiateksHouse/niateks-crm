@@ -9,7 +9,7 @@ class Company extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'country_code', 'city', 'email', 'phone'];
+    protected $fillable = ['name', 'country_code', 'city', 'email', 'phone', 'website', 'tax_number'];
 
     protected function casts(): array
     {

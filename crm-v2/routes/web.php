@@ -16,6 +16,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [SessionController::class, 'store'])->middleware('throttle:login');
 });
 Route::middleware(['auth', 'active'])->group(function () {
+    Route::post('/companies/{company}/matching', [\App\Http\Controllers\MatchingController::class, 'existing'])->name('matching.existing');
+    Route::get('/matching', [\App\Http\Controllers\MatchingController::class, 'index'])->name('matching.index');
+    Route::post('/matching/decide', [\App\Http\Controllers\MatchingController::class, 'decide'])->name('matching.decide')->block(10, 10);
+    Route::post('/matching/settings', [\App\Http\Controllers\MatchingController::class, 'settings'])->name('matching.settings');
+    Route::post('/matching/{decision}/revoke', [\App\Http\Controllers\MatchingController::class, 'revoke'])->name('matching.revoke');
+    Route::resource('contacts', \App\Http\Controllers\ContactController::class)->only(['index','create','store','show']);
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
     Route::post('/supply-categories', [SupplyCategoryController::class, 'store'])->name('supply-categories.store');
     Route::get('/companies/{company}/history', [CompanyController::class, 'history'])->name('companies.history');

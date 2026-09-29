@@ -11,10 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class CompanyService
 {
-    public function save(User $actor, array $data, ?Company $company = null): Company
+    public function save(User $actor, array $data, ?Company $company = null, bool $reviewed = false): Company
     {
         try {
-            return DB::transaction(function () use ($actor, $data, $company) {
+            return DB::transaction(function () use ($actor, $data, $company, $reviewed) {
                 if ($company) {
                     $company = Company::query()->lockForUpdate()->findOrFail($company->id);
                     Gate::forUser($actor)->authorize('update', $company);
@@ -37,16 +37,17 @@ class CompanyService
                         $q->orWhere('phone', $data['phone']);
                     }
                 })->when($company->exists, fn ($q) => $q->where('id', '!=', $company->id))->exists();
-                if ($duplicate) {
+                if ($duplicate && !$reviewed) {
                     throw ValidationException::withMessages(['name' => 'Benzer bir firma kaydı var. Yeni kart açmadan mevcut firmayı kontrol edin.']);
                 }
-                $company->fill(collect($data)->only(['name', 'country_code', 'city', 'email', 'phone'])->all());
+                $company->fill(collect($data)->only(['name', 'country_code', 'city', 'email', 'phone', 'website', 'tax_number'])->all());
                 $company->roles = array_values($data['roles']);
                 $company->identity_key = $identity;
                 $company->version++;
                 $company->save();
+                app(DuplicateMatcher::class)->index('company', $company->toArray());
                 $company->supplyCategories()->sync($data['supply_category_ids'] ?? []);
-                $snapshot = $company->only(['name', 'country_code', 'city', 'email', 'phone', 'roles']);
+                $snapshot = $company->only(['name', 'country_code', 'city', 'email', 'phone', 'website', 'tax_number', 'roles']);
                 $snapshot['supply_categories'] = $company->supplyCategories()->orderBy('name')->get(['supply_categories.id', 'name'])->toArray();
                 $company->revisions()->create(['version' => $company->version, 'actor_id' => $actor->id, 'snapshot' => $snapshot, 'created_at' => now()]);
                 $this->audit($actor, $company, $before ? 'revision_added' : 'created', $before);
@@ -71,7 +72,7 @@ class CompanyService
 
     private function snapshot(Company $company): array
     {
-        $snapshot = $company->only(['name', 'country_code', 'city', 'email', 'phone', 'roles']);
+        $snapshot = $company->only(['name', 'country_code', 'city', 'email', 'phone', 'website', 'tax_number', 'roles']);
         $snapshot['supply_categories'] = $company->supplyCategories()->orderBy('name')->get(['supply_categories.id', 'name'])->toArray();
 
         return $snapshot;
