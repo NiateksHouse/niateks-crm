@@ -15,6 +15,7 @@ class CompanyService
     {
         try {
             return DB::transaction(function () use ($actor, $data, $company, $reviewed) {
+                DB::table('matching_settings')->where('id', 1)->lockForUpdate()->first();
                 if ($company) {
                     $company = Company::query()->lockForUpdate()->findOrFail($company->id);
                     Gate::forUser($actor)->authorize('update', $company);

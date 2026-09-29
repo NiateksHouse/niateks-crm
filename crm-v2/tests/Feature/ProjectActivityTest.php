@@ -12,10 +12,11 @@ class ProjectActivityTest extends TestCase
 {
     public function test_upgrade_keeps_existing_users_and_companies(): void
     {
-        Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]);
+        $migration = require database_path('migrations/2026_09_30_000004_create_projects_and_activities.php');
+        $migration->down();
         $owner = $this->user();
         $company = app(CompanyService::class)->save($owner, $this->companyData());
-        Artisan::call('migrate', ['--force' => true]);
+        $migration->up();
         $this->assertDatabaseHas('users', ['id' => $owner->id, 'username' => 'rep']);
         $this->assertDatabaseHas('companies', ['id' => $company->id, 'name' => 'Example Textile']);
         $this->assertDatabaseCount('projects', 0);

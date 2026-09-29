@@ -104,4 +104,28 @@ class MatchingTest extends TestCase {
   $this->assertDatabaseCount('companies',2);
   $this->assertSame([],app(DuplicateMatcher::class)->find('company',$a->toArray(),$u,$a->id)['matches']);
  }
+
+ public function test_dictionary_upgrade_backfills_existing_companies_without_changing_them(): void {
+  $paths=array_map(fn($p)=>'database/migrations/'.basename($p),glob(database_path('migrations/*.php')));
+  $paths=array_values(array_filter($paths,fn($p)=>!str_contains($p,'000005')));
+  \Illuminate\Support\Facades\Artisan::call('migrate:fresh',['--force'=>true,'--path'=>$paths]);
+  $u=$this->user();
+  $id=DB::table('companies')->insertGetId(array_replace($this->companyData(),['roles'=>json_encode(['customer']),'created_by'=>$u->id,'identity_key'=>hash('sha256','legacy'),'version'=>1,'created_at'=>now(),'updated_at'=>now()]));
+  \Illuminate\Support\Facades\Artisan::call('migrate',['--force'=>true]);
+  $this->assertDatabaseHas('companies',['id'=>$id,'name'=>'Example Textile','created_by'=>$u->id]);
+  $this->assertSame($id,app(DuplicateMatcher::class)->find('company',$this->companyData(),$u)['matches'][0]['id']);
+ }
+ public function test_manual_alias_needs_explicit_confirmation_and_reconfirmation_does_not_duplicate_learning(): void {
+  $u=$this->user();$c=app(CompanyService::class)->save($u,$this->companyData());$this->actingAs($u);
+  $data=['company_id'=>$c->id,'alias'=>'Tamamen Farklı Marka','reason'=>'Ticaret kaydı doğrulandı'];
+  $this->post('/matching/aliases',$data)->assertSessionHasErrors('confirmed');
+  $this->assertDatabaseCount('self_learning_company_dictionary',0);
+  $this->post('/matching/aliases',$data+['confirmed'=>1])->assertRedirect();
+  $this->post('/matching/aliases',$data+['confirmed'=>1])->assertRedirect();
+  $this->assertDatabaseCount('self_learning_company_dictionary',1);
+  $this->assertDatabaseHas('matching_events',['action'=>'alias_reconfirmed']);
+  $found=app(DuplicateMatcher::class)->find('company',['name'=>'Tamamen Farklı Markaa'],$u)['matches'];
+  $this->assertSame($c->id,$found[0]['id']);
+  $this->assertGreaterThanOrEqual(70,$found[0]['duplicate_confidence_score']);
+ }
 }

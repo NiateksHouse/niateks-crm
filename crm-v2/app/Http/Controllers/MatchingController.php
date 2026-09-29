@@ -28,7 +28,9 @@ class MatchingController {
   $allowed=array_column($result['matches'],'id');
   foreach($d['different']??[] as $id) abort_unless(in_array((int)$id,$allowed,true),422);
   if($d['action']==='same') abort_unless(in_array((int)($d['target_id']??0),$allowed,true),422);
-  $record=DB::transaction(function()use($request,$d,$type,$input,$result,$decisions,$sourceId){
+  $record=DB::transaction(function()use($request,$d,$type,$input,$result,$decisions,$sourceId,$matcher){
+   DB::table('matching_settings')->where('id',1)->lockForUpdate()->first();
+   abort_unless($matcher->find($type,$input,$request->user(),$sourceId)===$result,409,'Eşleşmeler değişti; yeniden inceleyin.');
    if($d['action']==='same') {
     $target=$type==='company'?Company::findOrFail($d['target_id']):Contact::visibleTo($request->user())->findOrFail($d['target_id']);
     $decisions->record($request->user(),$type,$sourceId,$target->id,'same',$input,$target->toArray(),$d['reason'],$result);
@@ -46,18 +48,28 @@ class MatchingController {
   return redirect()->route($type==='company'?'companies.show':'contacts.show',$record)->with('status',$d['action']==='same'?'Onayınız kaydedildi. Mevcut kayıt açıldı; hiçbir kayıt birleştirilmedi.':'İşaretlediğiniz farklılık kararları kaydedildi; kayıtlar ayrı tutuldu.');
  }
  public function createContact(Request $request,array $data): Contact {
+  DB::table('matching_settings')->where('id',1)->lockForUpdate()->first();
   Company::findOrFail($data['company_id']);
   $contact=Contact::create(array_merge(collect($data)->only(['name','company_id','email','phone'])->all(),['created_by'=>$request->user()->id]));
   app(DuplicateMatcher::class)->index('contact',$contact->toArray());
   app(MatchingDecisions::class)->event($request->user(),'contact_created',null,['contact_id'=>$contact->id]);
   return $contact;
  }
+ public function alias(Request $request,DuplicateMatcher $matcher,MatchingDecisions $decisions) {
+  $data=$request->validate(['company_id'=>['required','integer'],'alias'=>['required','string','max:180'],'reason'=>['required','string','min:3','max:1000'],'confirmed'=>['accepted']]);
+  $data['alias']=trim($data['alias']); abort_if($data['alias']==='',422);
+  $company=Company::findOrFail($data['company_id']);
+  $input=['name'=>$data['alias']]; $score=$matcher->score('company',$input,$company->toArray(),$matcher->settings());
+  $decisions->record($request->user(),'company',null,$company->id,'same',$input,$company->toArray(),$data['reason'],['matches'=>[array_merge($score,['id'=>$company->id,'name'=>$company->name])],'settings'=>$matcher->settings()]);
+  return back()->with('status','İsim varyasyonu açık onayınızla kaydedildi. Firma adı değiştirilmedi.');
+ }
  public function index(Request $request) {
   $rows=DB::table('matching_decisions')->when(!$request->user()->isAdmin(),fn($q)=>$q->where('actor_id',$request->user()->id))->orderByDesc('id')->paginate(25);
   $aliases=DB::table('self_learning_company_dictionary as d')->join('matching_decisions as m','m.id','=','d.decision_id')->join('companies as c','c.id','=','d.company_id')->whereNull('m.revoked_at')->whereNull('c.deleted_at')->select('d.alias','c.name','c.id')->orderBy('d.id','desc')->limit(100)->get();
   $settings=app(DuplicateMatcher::class)->settings(); $version=DB::table('matching_settings')->where('id',1)->value('version');
   $events=$request->user()->isAdmin()?DB::table('matching_events')->orderByDesc('id')->paginate(25,['*'],'events'):null;
-  return view('matching.index',compact('rows','aliases','settings','version','events'));
+  $companies=Company::orderBy('name')->get(['id','name']);
+  return view('matching.index',compact('companies','rows','aliases','settings','version','events'));
  }
  public function revoke(Request $request,int $decision,MatchingDecisions $decisions) {
   abort_unless($request->user()->isAdmin(),403);

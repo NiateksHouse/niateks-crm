@@ -67,7 +67,7 @@ class CompanyController
 
     public function update(CompanyRequest $request, Company $company, CompanyService $service)
     {
-        $company = $service->save($request->user(), $request->validated(), $company);
+        $company = $service->save($request->user(), $request->validated(), $company, true);
 
         return redirect()->route('companies.show', $company)->with('status', 'Yeni bilgi kaydedildi; önceki bilgiler geçmişte korundu.');
     }

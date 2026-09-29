@@ -71,7 +71,7 @@ class DuplicateMatcher {
    if($type==='company') foreach(DB::table('self_learning_company_dictionary as d')->join('matching_decisions as m','m.id','=','d.decision_id')->whereNull('m.revoked_at')->where('d.company_id',$record->id)->pluck('d.alias') as $known) $aliasSimilarity=max($aliasSimilarity,$this->similarity($keys['name']??'',$this->normalize($known)));
    $score=$this->score($type,$input,$candidate,$weights,$aliasSimilarity >= $weights['name_similarity']);
    if($aliasSimilarity >= $weights['name_similarity']) $score['reasons'][]=['text'=>'Onaylı varyasyonla isim benzerliği %'.$aliasSimilarity,'points'=>0];
-   if($score['duplicate_confidence_score']===0) continue;
+   if($score['duplicate_confidence_score']===0 && $score['name_similarity']===0) continue;
    $sourceFingerprint=$this->fingerprint($input); $targetFingerprint=$this->fingerprint($candidate);
    $different=DB::table('matching_decisions')->where('entity_type',$type)->where('decision','different')->whereNull('revoked_at')->where(function($q)use($sourceId,$record,$sourceFingerprint,$targetFingerprint){
     $q->where(fn($x)=>$x->where('source_id',$sourceId)->where('target_id',$record->id)->where('source_fingerprint',$sourceFingerprint)->where('target_fingerprint',$targetFingerprint));
