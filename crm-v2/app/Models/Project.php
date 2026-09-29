@@ -16,7 +16,18 @@ class Project extends Model
         return $query->whereHas('company')->when(! $user->isAdmin(), fn ($q) => $q->where('owner_id', $user->id));
     }
 
-    public function company() { return $this->belongsTo(Company::class); }
-    public function owner() { return $this->belongsTo(User::class, 'owner_id'); }
-    public function revisions() { return $this->hasMany(ProjectRevision::class); }
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function revisions()
+    {
+        return $this->hasMany(ProjectRevision::class);
+    }
 }

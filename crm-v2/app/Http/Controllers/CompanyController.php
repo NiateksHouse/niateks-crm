@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CompanyRequest;
-use App\Models\Company;
 use App\Models\Activity;
+use App\Models\Company;
 use App\Models\SupplyCategory;
 use App\Services\CompanyService;
 use Illuminate\Http\Request;
@@ -33,9 +33,9 @@ class CompanyController
     {
         Gate::authorize('view', $company);
 
-        $activities = Activity::visibleTo($request->user())->where('company_id', $company->id)->with(['latestRevision.actor','project'])->latest('updated_at')->orderByDesc('id')->paginate(20);
+        $activities = Activity::visibleTo($request->user())->where('company_id', $company->id)->with(['latestRevision.actor', 'project'])->latest('updated_at')->orderByDesc('id')->paginate(20);
 
-        return view('companies.show', compact('company','activities'));
+        return view('companies.show', compact('company', 'activities'));
     }
 
     public function edit(Company $company)

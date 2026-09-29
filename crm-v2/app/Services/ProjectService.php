@@ -23,23 +23,24 @@ class ProjectService
                 $previous = array_search($project->stage, array_keys(Project::STAGES), true);
                 $next = array_search($data['stage'], array_keys(Project::STAGES), true);
                 if ($next < $previous && empty($data['reason'])) {
-                    throw ValidationException::withMessages(['reason'=>'Önceki aşamaya dönme nedenini yazın.']);
+                    throw ValidationException::withMessages(['reason' => 'Önceki aşamaya dönme nedenini yazın.']);
                 }
             } else {
-                $project = new Project(['company_id'=>$company->id, 'owner_id'=>$actor->id, 'version'=>0]);
+                $project = new Project(['company_id' => $company->id, 'owner_id' => $actor->id, 'version' => 0]);
             }
             if (Project::where('company_id', $company->id)->where('owner_id', $project->owner_id)->where('name', $data['name'])->when($project->exists, fn ($q) => $q->where('id', '!=', $project->id))->exists()) {
-                throw ValidationException::withMessages(['name'=>'Bu firmada aynı isimde bir projeniz var. Mevcut projeyi açın.']);
+                throw ValidationException::withMessages(['name' => 'Bu firmada aynı isimde bir projeniz var. Mevcut projeyi açın.']);
             }
             $project->name = $data['name'];
             $project->brief = $data['brief'] ?? null;
             $project->stage = $project->exists ? $data['stage'] : 'opened';
             $project->version++;
             $project->save();
-            $project->revisions()->create(['actor_id'=>$actor->id, 'version'=>$project->version, 'snapshot'=>$project->only(['name','brief','stage']) + ['reason'=>$data['reason'] ?? null], 'created_at'=>now()]);
-            $event = Activity::create(['company_id'=>$company->id,'project_id'=>$project->id,'owner_id'=>$project->owner_id,'kind'=>'system']);
-            $event->revisions()->create(['actor_id'=>$actor->id,'version'=>1,'summary'=>$project->version === 1 ? 'Proje açıldı' : 'Proje bilgisi güncellendi · Revizyon '.$project->version,'body'=>Project::STAGES[$project->stage],'occurred_at'=>now(),'created_at'=>now()]);
-            DB::table('audit_events')->insert(['actor_id'=>$actor->id,'entity_type'=>'project','entity_id'=>$project->id,'action'=>$project->version === 1 ? 'created' : 'revision_added','changed_fields'=>json_encode(['name','brief','stage']),'created_at'=>now()]);
+            $project->revisions()->create(['actor_id' => $actor->id, 'version' => $project->version, 'snapshot' => $project->only(['name', 'brief', 'stage']) + ['reason' => $data['reason'] ?? null], 'created_at' => now()]);
+            $event = Activity::create(['company_id' => $company->id, 'project_id' => $project->id, 'owner_id' => $project->owner_id, 'kind' => 'system']);
+            $event->revisions()->create(['actor_id' => $actor->id, 'version' => 1, 'summary' => $project->version === 1 ? 'Proje açıldı' : 'Proje bilgisi güncellendi · Revizyon '.$project->version, 'body' => Project::STAGES[$project->stage], 'occurred_at' => now(), 'created_at' => now()]);
+            DB::table('audit_events')->insert(['actor_id' => $actor->id, 'entity_type' => 'project', 'entity_id' => $project->id, 'action' => $project->version === 1 ? 'created' : 'revision_added', 'changed_fields' => json_encode(['name', 'brief', 'stage']), 'created_at' => now()]);
+
             return $project;
         });
     }

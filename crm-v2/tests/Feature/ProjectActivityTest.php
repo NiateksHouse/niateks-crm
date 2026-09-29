@@ -3,19 +3,19 @@
 namespace Tests\Feature;
 
 use App\Models\Activity;
-use App\Models\Project;
 use App\Services\CompanyService;
 use App\Services\ProjectService;
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class ProjectActivityTest extends TestCase
 {
     public function test_upgrade_keeps_existing_users_and_companies(): void
     {
-        \Illuminate\Support\Facades\Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]);
+        Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]);
         $owner = $this->user();
         $company = app(CompanyService::class)->save($owner, $this->companyData());
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        Artisan::call('migrate', ['--force' => true]);
         $this->assertDatabaseHas('users', ['id' => $owner->id, 'username' => 'rep']);
         $this->assertDatabaseHas('companies', ['id' => $company->id, 'name' => 'Example Textile']);
         $this->assertDatabaseCount('projects', 0);
