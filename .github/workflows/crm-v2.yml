@@ -47,7 +47,6 @@ jobs:
           coverage: none
       - run: composer validate --strict --no-check-publish
       - run: composer install --no-interaction --prefer-dist
-      - run: vendor/bin/pint
       - run: composer lint
       - run: composer audit
       - name: PHP syntax
@@ -77,5 +76,19 @@ jobs:
         with:
           name: koza-alpha18-reviewed-source
           path: /tmp/koza-build/source-with-lock.tar.gz
+          retention-days: 7
+          if-no-files-found: error
+      - name: Install locked runtime dependencies
+        run: |
+          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+          composer check-platform-reqs --no-dev
+          composer audit --no-dev
+          python3 tools/build_release.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: koza-alpha18-runtime
+          path: |
+            /tmp/koza-build/koza-crm-v2.0.0-alpha.18-runtime.zip
+            /tmp/koza-build/SHA256SUMS.txt
           retention-days: 7
           if-no-files-found: error

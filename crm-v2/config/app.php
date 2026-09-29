@@ -1,4 +1,5 @@
 <?php
+
 return [
     'name' => env('APP_NAME', 'Niateks House CRM'),
     'env' => env('APP_ENV', 'production'),

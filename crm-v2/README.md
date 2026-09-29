@@ -1,5 +1,5 @@
 # KOZA CRM v2.0.0-alpha.18
 
-Build preparation for the shared company foundation. CI formats PHP with Pint, checks the formatting, runs MySQL feature tests and real HTTP login/CSRF/logout checks. A source artifact includes the resolved composer.lock for review and versioning. It excludes vendor and is not a hosting installation package.
+Locked and formatted Laravel/MySQL company-card foundation with real HTTP login, CSRF, logout/session replay tests. composer.lock fixes the dependency set. CI checks Pint without changing files, runs MySQL feature tests, compiles Blade, checks real HTTP flows, and packages runtime dependencies without development tools or project test fixtures.
 
-No hosting release is performed. User provisioning, production dependency packaging, approved UI integration and hosting smoke checks remain. Existing company guide v0.3.0 stays valid and unchanged. See VALIDATION.md for current results.
+The runtime ZIP is a test installation candidate, not a deployed or fully finished CRM. Initial user provisioning, approved UI integration, supported hosting command execution, secret configuration and HTTPS hosting checks remain. See INSTALL.md. Company guide v0.3.0 is unchanged.

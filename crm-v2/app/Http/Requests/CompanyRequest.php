@@ -1,14 +1,19 @@
 <?php
+
 namespace App\Http\Requests;
+
 use App\Models\Company;
 use Illuminate\Foundation\Http\FormRequest;
+
 class CompanyRequest extends FormRequest
 {
     public function authorize(): bool
     {
         $company = $this->route('company');
+
         return $company ? $this->user()->can('update', $company) : $this->user()->can('create', Company::class);
     }
+
     public function rules(): array
     {
         return [
@@ -24,6 +29,7 @@ class CompanyRequest extends FormRequest
             'version' => [$this->isMethod('POST') ? 'nullable' : 'required', 'integer', 'min:1'],
         ];
     }
+
     public function after(): array
     {
         return [function ($validator) {
@@ -32,12 +38,15 @@ class CompanyRequest extends FormRequest
             }
         }];
     }
+
     protected function prepareForValidation(): void
     {
         $normalized = [];
         foreach (['name', 'country_code', 'email', 'phone'] as $key) {
             $value = $this->input($key);
-            if (! is_string($value)) continue;
+            if (! is_string($value)) {
+                continue;
+            }
             $value = trim($value);
             $normalized[$key] = match ($key) {
                 'country_code' => strtoupper($value),
