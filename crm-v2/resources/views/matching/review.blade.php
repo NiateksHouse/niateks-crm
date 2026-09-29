@@ -1,6 +1,6 @@
 @extends('layout')
 @section('content')
-<h1>Olası mükerrer kayıtlar</h1><p><strong>{{ $data['name'] }}</strong> için inceleme. Puan istatistiksel olasılık değildir; eşleşen bilgilerin toplamıdır. Hiçbir kayıt otomatik birleştirilmez.</p>
+<h1>Olası mükerrer kayıtlar</h1><p><strong>{{ $data['name'] }}</strong> için inceleme. Puan istatistiksel olasılık değildir; eşleşen bilgilerin toplamıdır ve en fazla 100 olur. Hiçbir kayıt otomatik birleştirilmez.</p>
 @if(!$result['matches'])<p class="status-message">Görülebilen kayıtlarda eşleşme bulunamadı.</p>@endif
 @if($result['suppressed'])<p>{{ $result['suppressed'] }} eşleşme, önceki “farklı” kararınız nedeniyle tekrar uyarı olarak gösterilmedi.</p>@endif
 <form method="post" action="{{ route('matching.decide') }}">@csrf<input type="hidden" name="token" value="{{ $token }}">
@@ -14,5 +14,5 @@
 <label for="reason">Karar açıklaması</label><textarea id="reason" name="reason" required minlength="3" maxlength="1000"></textarea>
 <p>“Aynı” seçeneğinde firma adının özgün yazımı onaylı varyasyon olarak saklanır; mevcut firmanın adı değişmez. “Farklı” işaretleri yalnız yeni kayıt seçeneğinde kaydedilir.</p>
 @if($result['matches'])<button name="action" value="same">Seçtiğim mevcut kaydı kullan ve onayı kaydet</button>@endif
-<button name="action" value="new">{{ $sourceId ? 'Farklılık kararlarını kaydet' : 'Ayrı yeni kayıt oluştur' }}</button></form><p><a href="{{ route($type==='company'?'companies.create':'contacts.create') }}">Bilgileri yeniden gir / iptal et</a></p>
+<button name="action" value="new">{{ $sourceId ? 'Farklılık kararlarını kaydet' : 'Ayrı yeni kayıt oluştur' }}</button></form><form method="post" action="{{ route('matching.cancel') }}">@csrf<input type="hidden" name="token" value="{{ $token }}"><button>Bilgilerime geri dön</button></form>
 @endsection

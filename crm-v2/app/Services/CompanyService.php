@@ -63,6 +63,7 @@ class CompanyService
     public function archive(User $actor, Company $company, int $version): void
     {
         DB::transaction(function () use ($actor, $company, $version) {
+            DB::table('matching_settings')->where('id', 1)->lockForUpdate()->first();
             $company = Company::query()->lockForUpdate()->findOrFail($company->id);
             Gate::forUser($actor)->authorize('delete', $company);
             abort_unless($company->version === $version, 409);

@@ -10,9 +10,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 class MatchingController {
  public function preview(Request $request,string $type,array $data,array $result, ?int $sourceId=null) {
+  $pending=$request->session()->get('matching',[]);
+  $pending=array_filter($pending,fn($v)=>$v['expires']>=now()->timestamp);
+  $request->session()->put('matching',array_slice($pending,-4,null,true));
   $token=(string)Str::uuid();
   $request->session()->put('matching.'.$token,['source_id'=>$sourceId,'type'=>$type,'input'=>$data,'result'=>$result,'expires'=>now()->addMinutes(30)->timestamp]);
   return response()->view('matching.review',compact('token','type','data','result','sourceId'));
+ }
+ public function cancel(Request $request) {
+  $data=$request->validate(['token'=>['required','uuid']]);
+  $draft=$request->session()->pull('matching.'.$data['token']); abort_unless($draft,419);
+  if($draft['source_id']??null) return redirect()->route('companies.show',$draft['source_id']);
+  return redirect()->route($draft['type']==='company'?'companies.create':'contacts.create')->withInput($draft['input']);
  }
  public function existing(Request $request,Company $company,DuplicateMatcher $matcher) {
   return $this->preview($request,'company',$company->toArray(),$matcher->find('company',$company->toArray(),$request->user(),$company->id),$company->id);
@@ -30,6 +39,7 @@ class MatchingController {
   if($d['action']==='same') abort_unless(in_array((int)($d['target_id']??0),$allowed,true),422);
   $record=DB::transaction(function()use($request,$d,$type,$input,$result,$decisions,$sourceId,$matcher){
    DB::table('matching_settings')->where('id',1)->lockForUpdate()->first();
+   if($sourceId) abort_unless($matcher->fingerprint(Company::findOrFail($sourceId)->toArray())===$matcher->fingerprint($input),409);
    abort_unless($matcher->find($type,$input,$request->user(),$sourceId)===$result,409,'Eşleşmeler değişti; yeniden inceleyin.');
    if($d['action']==='same') {
     $target=$type==='company'?Company::findOrFail($d['target_id']):Contact::visibleTo($request->user())->findOrFail($d['target_id']);

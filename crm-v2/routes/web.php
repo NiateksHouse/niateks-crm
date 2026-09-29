@@ -17,6 +17,7 @@ Route::middleware('guest')->group(function () {
 });
 Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/companies/{company}/matching', [\App\Http\Controllers\MatchingController::class, 'existing'])->name('matching.existing');
+    Route::post('/matching/cancel', [\App\Http\Controllers\MatchingController::class, 'cancel'])->name('matching.cancel');
     Route::post('/matching/aliases', [\App\Http\Controllers\MatchingController::class, 'alias'])->name('matching.alias');
     Route::get('/matching', [\App\Http\Controllers\MatchingController::class, 'index'])->name('matching.index');
     Route::post('/matching/decide', [\App\Http\Controllers\MatchingController::class, 'decide'])->name('matching.decide')->block(10, 10);

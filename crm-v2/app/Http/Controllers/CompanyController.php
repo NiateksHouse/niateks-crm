@@ -55,14 +55,16 @@ class CompanyController
 
     public function store(CompanyRequest $request, CompanyService $service)
     {
-        $data = $request->validated();
-        $result = app(\App\Services\DuplicateMatcher::class)->find('company', $data, $request->user());
-        if ($request->input('intent') === 'review' || collect($result['matches'])->contains(fn($m) => $m['level'] !== 'low')) {
-            return app(MatchingController::class)->preview($request, 'company', $data, $result);
-        }
-        $company = $service->save($request->user(), $data, null, true);
-
-        return redirect()->route('companies.show', $company)->with('status', 'Firma kartı oluşturuldu.');
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $service) {
+            \Illuminate\Support\Facades\DB::table('matching_settings')->where('id', 1)->lockForUpdate()->first();
+            $data = $request->validated();
+            $result = app(\App\Services\DuplicateMatcher::class)->find('company', $data, $request->user());
+            if ($request->input('intent') === 'review' || collect($result['matches'])->contains(fn($m) => $m['level'] !== 'low')) {
+                return app(MatchingController::class)->preview($request, 'company', $data, $result);
+            }
+            $company = $service->save($request->user(), $data, null, true);
+            return redirect()->route('companies.show', $company)->with('status', 'Firma kartı oluşturuldu.');
+        });
     }
 
     public function update(CompanyRequest $request, Company $company, CompanyService $service)
