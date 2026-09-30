@@ -1,16 +1,14 @@
-# Alpha.20 — test ortamı kurulum sırası
+# Alpha.27 — mevcut Alpha.26 test kurulumuna Dokümanlar güncellemesi
 
-Bu paket tam CRM değildir. Yalnız giriş, ilk hesap daveti ve firma altyapısıdır. Kılavuz v0.3.0 değiştirilmedi.
+Bu belge kurulum prosedürüdür; tamamlanmış yayın kanıtı VALIDATION.md dosyasına kaydedilir. Eski kurulum ve davet işlemleri yeniden çalıştırılmaz.
 
-1. Sunucuda test DB ve test alanını doğrula; ayrı sürüm klasörüne paketi çıkar. Yalnız public klasörü web kökü olmalı. .env, vendor, storage, kurulum dosyaları ve loglar internetten erişilemez olmalı. Dizin listelemeyi kapat ve HTTPS'yi doğrula.
-2. .env yalnız sunucuda: test DB parolası, benzersiz APP_KEY, APP_ENV=staging, APP_DEBUG=false, HTTPS APP_URL, güvenli çerez ve ayrı test oturumu. E-posta gönderimi kapalı.
-3. Cron'un PHP CLI sürümünün 8.4 ve gerekli uzantıların etkin olduğunu çalıştırarak doğrula; web PHP seçimi bunu tek başına kanıtlamaz. Mevcut cron işlerini değiştirme.
-4. Yetkili özel kurulum işiyle ilk kurulumda key:generate --force, migrate --force çalıştır; hostingde migrate:fresh kullanma. Sonraki dağıtımda mevcut APP_KEY korunur. Görev çıktısı yalnız özel dosyaya, e-postasız yazılmalı. Tek seferlik kurulumun tekrar çalışmasını engelle ve tamamlanınca geçici işi kaldır.
-5. storage/app/private/bootstrap-users.json dosyasını yalnız sunucuda oluştur (0600). Bu dosya en fazla 10 kayıt içerir: username, email, name, role (admin/representative), can_view_all_finance (boolean). En az bir yönetici şart. Dosyada parola yoktur. Onaylı gerçek kullanıcı listesi Git/paket yerine yerel özel kurulum kaydındadır.
-6. `php artisan koza:bootstrap-invitations --no-interaction` komutunu özel kurulum işinden çalıştır. İlk batch yalnız boş kullanıcı/davet tablolarında oluşturulur; komut tekrarları davetleri yenilemez. Çıktı kodları storage/app/private/bootstrap-invitations.json dosyasında 0600 izniyle bulunur; konsola veya e-postaya yazılmaz. Bu dosyayı web köküne koyma, Git'e ekleme veya log olarak paylaşma.
-7. Kodları yetkili kullanıcıya güvenli şekilde teslim et; otomatik e-posta yok. Kullanıcı HTTPS /activate ekranında kodunu ve kendi parolasını girer. Kod 24 saat sonra biter ve tek kullanımlıktır. Nigar için genel finans, Tunç için genel finans olmadan yönetici planı uygulanır. Parola belirleme işlemini kullanıcının kendisi tamamlamalıdır.
-8. Süresi dolmuş/iptal edilmiş davet için herkese açık yenileme veya parola sıfırlama yoktur. Bu sürümde yenileme ekranı bulunmaz; ilk kurulum kodları kullanıcı hazırken üretilmeli. İlk batch dosyasını silip komutu tekrar çalıştırmak yeni kod üretmez. Kontrollü davet yenileme sonraki idari işlevdir.
-9. Giriş/çıkış, firma revizyonu, rol ve özel dosya erişim testlerini HTTPS üzerinde yap. Kullanılmış kod yeniden hesap açamamalı. Hata/erişim günlüklerine gövde veya gizli kod yazılmadığını doğrula.
-10. Geri dönüş uygulama sürümünü değiştirerek yapılır; migration down ile kullanıcı/davet/geçmiş tabloları silinmez.
+1. Yalnız /home/niatekscom/koza-crm-test-alpha20 uygulamasını ve test.koza.niateks.com adresini hedefle. APP_ENV=staging, APP_DEBUG=false, mevcut test DB niatekscom_koza_test ve HTTPS kontrol edilir. APP_KEY, parola, hesaplar ve .env korunur.
+2. PHP CLI 8.4, intl/Collator, zip/ZipArchive, fileinfo, getimagesize, mbstring ve pdo_mysql gereklidir. Mevcut dosyalar Alpha.26 SHA256 değerleriyle eşleşmezse yayın durur. Yeni dosya yolu zaten varsa üzerine yazılmaz.
+3. 25 dosyalık güncelleme önce web kökü dışındaki updates/alpha27/payload alanına konur. Değişen önceki kaynaklar yalnız sunucuda storage/app/private/alpha27-previous alanında saklanır. Hosting veya DB yedeği yerel SSD'ye indirilmez.
+4. Kısa bakım penceresinde doğrulanmış dosyalar atomik adlandırmayla yerleştirilir. Yalnız database/migrations/2026_09_30_000006_create_documents.php migration'ı çalıştırılır. document_categories, documents, document_versions, document_events eklenir; mevcut iş tablolarının satır sayıları korunur. migrate:fresh, refresh ve rollback hostingde çalıştırılmaz.
+5. storage/app/private/documents dizini 0700; dosyalar 0600. public altında bağlantı veya storage symlink oluşturma. Dosya alanı DB'den ayrıdır; ileride sunucu yedekleme politikasında birlikte ele alınmalıdır. Bu güncelleme yedek geri yükleme tatbikatı değildir.
+6. Görünüm/rota/ayar önbellekleri temizlenir, dosya hash'leri yeniden doğrulanır ve bakım modu kapatılır. Özel result.json sonucu sır içermez. Geçici Cron işi sonuçtan sonra yeniden işlem yapmaz; kullanıcı onayıyla kaldırılır. Mevcut saatlik rapor görevi korunur.
+7. Başarısızlıkta önceki kaynak dosyaları geri yerleştirilir. Eklenen tablolar veya dosyalar otomatik silinmez; başarısız adım özel sonuç kaydında gösterilir. Kısmi DDL durumunda otomatik tekrar yapılmaz; güvenli ileri düzeltme hazırlanır.
+8. HTTPS oturumunda liste, kategori, yeni belge, sürüm geçmişi, önizleme, izin ve arşiv davranışını sentetik dosyayla kontrol et. Gerçek şirket evrakı yükleyerek test yapma. Oturum yoksa kullanıcıdan giriş yapmasını iste; kimlik doğrulama atlatılmaz.
 
-İlk davet oluşturma yolu Cron ile uyumludur; CLI sürümü 8.4.25 olarak doğrulandı; gerçek uygulama kurulumu henüz yapılmadı. Bu belge uygulanmış kurulum kaydı değildir.
+Varsayılan rol yetkileri config/documents.php dosyasındadır. Admin tüm belge işlemi yetkilerine sahip olsa da belge ACL'si ayrıca gerekir. Representative yalnız view/download/view_private yetkileriyle erişimi açık belgeleri okur. Özel belge sahibinin de görüntüleme ve özel belge yetkisi gerekir. Yeni finance/management rolü bu sürümde uydurulmaz.
