@@ -8,7 +8,7 @@ import datetime
 root = Path(__file__).resolve().parents[1]
 out = Path('/tmp/koza-build')
 out.mkdir(parents=True, exist_ok=True)
-archive = out / 'koza-crm-v2.0.0-alpha.27-runtime.zip'
+archive = out / 'koza-crm-v2.1.0-test.1-runtime.zip'
 files = []
 for name in ['app', 'config', 'database', 'public', 'vendor']:
     files.extend(f for f in (root / name).rglob('*') if f.is_file())
@@ -19,6 +19,8 @@ with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
     for f in sorted(set(files)):
         assert not f.is_symlink(), f'Unexpected symlink: {f}'
         rel = f.relative_to(root).as_posix()
+        if rel in ['public/app.css', 'public/app-alpha21.css']:
+            continue
         assert rel != '.env' and not rel.startswith(('tests/', 'storage/', 'bootstrap/cache/'))
         data = f.read_bytes()
         info = zipfile.ZipInfo(rel, datetime.datetime.now().timetuple()[:6])

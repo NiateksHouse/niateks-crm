@@ -6,6 +6,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DocumentCategoryController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\KozaController;
 use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SessionController;
@@ -35,7 +36,29 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->whereNumber('document')->name('documents.destroy');
     Route::post('/documents/{document}/restore', [DocumentController::class, 'restore'])->whereNumber('document')->name('documents.restore');
 
-    Route::get('/home', [WorkspaceController::class, 'home'])->name('workspace.home');
+    Route::get('/home', [KozaController::class, 'home'])->name('workspace.home');
+    Route::prefix('koza/api')->middleware('throttle:120,1')->group(function () {
+        Route::get('/bootstrap', [KozaController::class, 'bootstrap']);
+        Route::get('/records', [KozaController::class, 'index']);
+        Route::post('/records', [KozaController::class, 'store']);
+        Route::get('/records/{record}', [KozaController::class, 'show'])->whereNumber('record');
+        Route::put('/records/{record}', [KozaController::class, 'update'])->whereNumber('record');
+        Route::post('/records/{record}/actions', [KozaController::class, 'action'])->whereNumber('record');
+        Route::get('/records/{record}/history/{event}', [KozaController::class, 'history'])->whereNumber(['record', 'event']);
+        Route::get('/records/{record}/trace', [KozaController::class, 'trace'])->whereNumber('record');
+        Route::put('/preferences', [KozaController::class, 'preferences']);
+        Route::post('/companies', [KozaController::class, 'company']);
+        Route::put('/companies/{company}', [KozaController::class, 'company']);
+        Route::get('/settings', [KozaController::class, 'settings']);
+        Route::put('/settings/policy', [KozaController::class, 'policy']);
+        Route::put('/settings/access', [KozaController::class, 'grant']);
+        Route::get('/documents', [KozaController::class, 'documents']);
+        Route::post('/documents', [KozaController::class, 'upload']);
+        Route::post('/documents/{document}/versions', [KozaController::class, 'upload'])->whereNumber('document');
+        Route::post('/ask', [KozaController::class, 'ask']);
+        Route::get('/analytics', [KozaController::class, 'analytics']);
+        Route::get('/export', [KozaController::class, 'export']);
+    });
     Route::get('/activities', [WorkspaceController::class, 'activities'])->name('workspace.activities');
     Route::get('/workspace/{module}', [WorkspaceController::class, 'module'])->name('workspace.module');
     Route::post('/companies/{company}/matching', [MatchingController::class, 'existing'])->name('matching.existing');
