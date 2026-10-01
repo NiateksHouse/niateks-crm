@@ -222,11 +222,11 @@ class KozaWorkflowTest extends TestCase
     public function test_every_employee_can_stop_a_right_but_cannot_enable_execution(): void
     {
         $right = $this->create($this->t, 'right', ['decision_class' => 'Draft', 'human_owner' => 'Bartu', 'level' => 'prepare', 'scope' => 'Read authorised sources', 'valid_until' => '2026-11-01', 'freshness' => 'Current', 'stop_method' => 'Stop button', 'rollback' => 'Discard draft', 'domain' => 'market']);
-        $right = $this->act($this->t,$right,'right_technical');
-        $right = $this->act($this->n,$right,'right_business');
-        $this->assertSame('active',$right->state);
-        $right = $this->act($this->b,$right,'stop_ai');
-        $this->assertSame('stopped',$right->state);
-        $this->actingAs($this->b)->postJson('/koza/api/records/'.$right->id.'/actions',['version' => $right->version, 'action' => 'right_business', 'reason' => 'Resume'])->assertForbidden();
+        $right = $this->act($this->t, $right, 'right_technical');
+        $right = $this->act($this->n, $right, 'right_business');
+        $this->assertSame('active', $right->state);
+        $right = $this->act($this->b, $right, 'stop_ai');
+        $this->assertSame('stopped', $right->state);
+        $this->actingAs($this->b)->postJson('/koza/api/records/'.$right->id.'/actions', ['version' => $right->version, 'action' => 'right_business', 'reason' => 'Resume'])->assertForbidden();
     }
 }
