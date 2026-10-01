@@ -170,7 +170,8 @@ class MatchingTest extends TestCase
     public function test_dictionary_upgrade_backfills_existing_companies_without_changing_them(): void
     {
         $paths = array_map(fn ($p) => 'database/migrations/'.basename($p), glob(database_path('migrations/*.php')));
-        $paths = array_values(array_filter($paths, fn ($p) => ! str_contains($p, '000005')));
+        // Model the real pre-dictionary installation, before dependent migrations.
+        $paths = array_values(array_filter($paths, fn ($p) => basename($p) < '2026_09_30_000005'));
         Artisan::call('migrate:fresh', ['--force' => true, '--path' => $paths]);
         $u = $this->user();
         $id = DB::table('companies')->insertGetId(array_replace($this->companyData(), ['roles' => json_encode(['customer']), 'created_by' => $u->id, 'identity_key' => hash('sha256', 'legacy'), 'version' => 1, 'created_at' => now(), 'updated_at' => now()]));

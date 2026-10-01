@@ -39,6 +39,7 @@ function check(bool $condition, string $message): void
 }
 function command(array $args): void
 {
+    global $work;
     $process = proc_open($args, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, APP_ROOT);
     check(is_resource($process), 'CLI process could not start');
     fclose($pipes[0]);
@@ -47,6 +48,8 @@ function command(array $args): void
     fclose($pipes[1]);
     fclose($pipes[2]);
     $code = proc_close($process);
+    file_put_contents($work.'/commands.log', gmdate('c').' '.($args[2] ?? 'unknown').' exit='.$code."\n".$output.$error."\n", FILE_APPEND);
+    chmod($work.'/commands.log', 0600);
     if ($code !== 0) {
         throw new RuntimeException('CLI command failed: '.($args[2] ?? 'unknown').'; see private log');
     }

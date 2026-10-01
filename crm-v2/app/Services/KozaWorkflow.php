@@ -185,6 +185,10 @@ class KozaWorkflow
                     if ($id) {
                         abort_unless($contact->created_by === $actor->id || $actor->isAdmin(), 403);
                         $identity = ['name' => $input['title'], 'email' => app(DuplicateMatcher::class)->email($data['email'] ?? '') ?: null, 'phone' => app(DuplicateMatcher::class)->phone($data['phone'] ?? '') ?: null];
+                        $matches = app(DuplicateMatcher::class)->find('contact', $identity + ['company_id' => $contact->company_id], $actor, $contact->id);
+                        if (collect($matches['matches'])->contains(fn ($m) => $m['level'] !== 'low')) {
+                            $this->fail('duplicate_contact');
+                        }
                         $contact->fill($identity);
                         $contact->save();
                         app(DuplicateMatcher::class)->index('contact', $contact->toArray());

@@ -93,6 +93,13 @@ class KozaAccess
         if (! $write) {
             return $fields;
         }
+        // Lifecycle evidence is recorded only by the corresponding gated action.
+        $actionFields = match ($type) {
+            'quote' => ['dispatch_evidence', 'acceptance'],
+            'sample' => ['dispatch_evidence', 'delivered_at', 'feedback'],
+            default => [],
+        };
+        $fields = array_diff_key($fields, array_flip($actionFields));
         if ($this->has($user, config('koza.catalog.'.$type.'.domain'))) {
             return $fields;
         }

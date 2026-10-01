@@ -277,6 +277,13 @@ class KozaWorkflowTest extends TestCase
         $this->actingAs($peer)->getJson('/koza/api/records/'.$contact->id)->assertNotFound();
     }
 
+    public function test_lifecycle_evidence_cannot_be_written_through_the_generic_editor(): void
+    {
+        $quote = $this->quote();
+        $this->actingAs($this->n)->putJson('/koza/api/records/'.$quote->id, ['version' => $quote->version, 'title' => $quote->title, 'company_id' => $this->company, 'data' => ['acceptance' => 'Bypass approval']])->assertForbidden();
+        $this->assertArrayNotHasKey('acceptance', $quote->fresh()->data);
+    }
+
     public function test_sample_round_approval_and_feedback_leave_original_content_intact(): void
     {
         $op = $this->opportunity();

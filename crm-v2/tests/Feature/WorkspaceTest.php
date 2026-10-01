@@ -33,12 +33,12 @@ class WorkspaceTest extends TestCase
         $this->getJson('/koza/api/bootstrap')->assertOk()->assertJsonCount(0, 'projects');
     }
 
-    public function test_approved_navigation_and_preparation_pages_are_explicit(): void
+    public function test_legacy_navigation_opens_the_implemented_workspace(): void
     {
         $this->actingAs($this->user());
         $this->get('/home')->assertOk()->assertSee('koza-v1.js')->assertSee('English · UK')->assertSee('Türkçe · TR');
-        foreach (['products', 'tasks', 'samples', 'quotes', 'orders', 'finance'] as $module) {
-            $this->get('/workspace/'.$module)->assertOk()->assertSee('Henüz kayıt alınmıyor');
+        foreach (['products' => 'products', 'tasks' => 'focus', 'samples' => 'samples', 'quotes' => 'quotes', 'orders' => 'orders', 'finance' => 'commercial'] as $module => $view) {
+            $this->get('/workspace/'.$module)->assertRedirect('/home#'.$view);
         }
         $this->get('/workspace/unknown')->assertNotFound();
         $this->post('/workspace/orders')->assertStatus(405);
