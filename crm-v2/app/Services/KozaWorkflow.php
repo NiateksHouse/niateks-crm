@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Contact;
 use App\Models\KozaRecord;
 use App\Models\User;
 use Brick\Math\BigDecimal as D;
@@ -90,7 +91,7 @@ class KozaWorkflow
                 }
             }
             $v = Validator::make($input, ['title' => 'required|string|max:180', 'company_id' => ['nullable', 'integer', Rule::exists('companies', 'id')->whereNull('deleted_at')],
-                'source' => 'nullable|string|max:240', 'due_at' => 'nullable|date_format:Y-m-d', 'data' => 'present|array', 'links' => 'sometimes|array|max:100', 'lines' => 'sometimes|array|max:100']);
+                'contact_id' => ['nullable', 'integer'], 'owner_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('active', true)], 'source' => 'nullable|string|max:240', 'due_at' => 'nullable|date_format:Y-m-d', 'data' => 'present|array', 'links' => 'sometimes|array|max:100', 'lines' => 'sometimes|array|max:100']);
             $v->validate();
             if ($id && $r->company_id !== ($input['company_id'] ?? null) && $r->company_id !== (int) ($input['company_id'] ?? 0)) {
                 $this->fail('company_immutable');
@@ -113,6 +114,21 @@ class KozaWorkflow
             }
             Validator::make($raw, $rules)->validate();
             $data = array_replace($r->data ?? [], $raw);
+            if ($id && (($type === 'order') || ($type === 'shipment' && $r->state !== 'draft'))) {
+                $fixed = $type === 'order' ? ['po', 'currency'] : ['direction', 'quantity', 'unit', 'shipped_at'];
+                foreach ($fixed as $field) {
+                    if (($data[$field] ?? null) !== ($r->data[$field] ?? null)) {
+                        $this->fail('frozen_scope');
+                    }
+                }
+                if (isset($input['links'])) {
+                    $normalize = fn ($links) => collect($links)->map(fn ($l) => ($l['relation'].':'.$l['target_id'].':'.(($l['quantity'] ?? null) === null ? '' : D::of((string) $l['quantity'])->stripTrailingZeros()).':'.($l['unit'] ?? '')))->sort()->values()->all();
+                    $prior = $r->links()->get(['relation', 'target_id', 'quantity', 'unit'])->toArray();
+                    if ($normalize($prior) !== $normalize($input['links'])) {
+                        $this->fail('frozen_scope');
+                    }
+                }
+            }
             if ($type === 'order' && $id) {
                 foreach (['payment_status', 'payment_evidence', 'payment_plan'] as $f) {
                     if (($data[$f] ?? null) !== ($r->data[$f] ?? null) && ! $this->access->has($actor, 'commercial')) {
@@ -125,7 +141,7 @@ class KozaWorkflow
                 if (($data['revised_promise'] ?? null) !== ($r->data['revised_promise'] ?? null) && empty($data['change_reason'])) {
                     $this->fail('required', 'change_reason');
                 }
-                if (($data['payment_status'] ?? 'unknown') !== 'unknown' && empty($data['payment_evidence'])) {
+                if (in_array($data['payment_status'] ?? 'unknown', ['partial', 'paid']) && empty($data['payment_evidence'])) {
                     $this->fail('required', 'payment_evidence');
                 }
             }
@@ -153,6 +169,47 @@ class KozaWorkflow
                 if (KozaRecord::where('dedup_key', $r->dedup_key)->when($id, fn ($q) => $q->where('id', '!=', $id))->exists()) {
                     $this->fail('duplicate_cost');
                 }
+            }
+            if (! empty($input['owner_id']) && (int) $input['owner_id'] !== $r->owner_id) {
+                abort_unless($type !== 'capability' && $this->access->has($actor, config('koza.catalog.'.$type.'.domain')), 403);
+                $r->owner_id = (int) $input['owner_id'];
+            }
+            if ($type === 'contact' && ($data['kind'] ?? null) === 'person') {
+                $canonicalId = $r->contact_id ?: ($input['contact_id'] ?? null);
+                DB::table('matching_settings')->where('id', 1)->lockForUpdate()->first();
+                if ($canonicalId) {
+                    $contact = Contact::visibleTo($actor)->lockForUpdate()->findOrFail($canonicalId);
+                    if ($contact->company_id != $input['company_id']) {
+                        $this->fail('company_mismatch');
+                    }
+                    if ($id) {
+                        abort_unless($contact->created_by === $actor->id || $actor->isAdmin(), 403);
+                        $identity = ['name' => $input['title'], 'email' => app(DuplicateMatcher::class)->email($data['email'] ?? '') ?: null, 'phone' => app(DuplicateMatcher::class)->phone($data['phone'] ?? '') ?: null];
+                        $contact->fill($identity);
+                        $contact->save();
+                        app(DuplicateMatcher::class)->index('contact', $contact->toArray());
+                        app(MatchingDecisions::class)->event($actor, 'contact_updated', null, ['contact_id' => $contact->id]);
+                    } else {
+                        // Selecting an existing person adopts their canonical identity.
+                        $input['title'] = $contact->name;
+                        $data['email'] = $contact->email;
+                        $data['phone'] = $contact->phone;
+                    }
+                } else {
+                    $matcher = app(DuplicateMatcher::class);
+                    $identity = ['name' => $input['title'], 'company_id' => $input['company_id'], 'email' => $matcher->email($data['email'] ?? '') ?: null, 'phone' => $matcher->phone($data['phone'] ?? '') ?: null];
+                    $matches = $matcher->find('contact', $identity, $actor);
+                    if (collect($matches['matches'])->contains(fn ($m) => $m['level'] !== 'low')) {
+                        $this->fail('duplicate_contact');
+                    }
+                    $contact = Contact::create($identity + ['created_by' => $actor->id]);
+                    $matcher->index('contact', $contact->toArray());
+                    app(MatchingDecisions::class)->event($actor, 'contact_created', null, ['contact_id' => $contact->id]);
+                }
+                if (KozaRecord::where('contact_id', $contact->id)->when($id, fn ($q) => $q->where('id', '!=', $id))->exists()) {
+                    $this->fail('duplicate_contact');
+                }
+                $r->contact_id = $contact->id;
             }
             $r->fill(['title' => $input['title'], 'company_id' => $input['company_id'] ?? null, 'data' => $data, 'source' => $input['source'] ?? null, 'due_at' => $input['due_at'] ?? null]);
             $r->version++;
@@ -223,7 +280,13 @@ class KozaWorkflow
             'lines.*.unit_price' => ['required', 'regex:/^\d{1,12}(\.\d{1,4})?$/'], 'lines.*.unit_cost' => ['nullable', 'regex:/^\d{1,12}(\.\d{1,4})?$/']])->validate();
         $old = DB::table('koza_lines')->where('record_id', $r->id)->get()->keyBy('id');
         $rows = [];
+        $identities = [];
         foreach ($lines as $i => $line) {
+            $identity = $line['variant_id'].':'.$line['unit'];
+            if (isset($identities[$identity])) {
+                $this->fail('duplicate_variant_line');
+            }
+            $identities[$identity] = true;
             $variant = $this->access->visible($actor)->where('type', 'variant')->lockForUpdate()->findOrFail($line['variant_id']);
             if (! empty($line['sku_id'])) {
                 $sku = $this->access->visible($actor)->where('type', 'sku')->findOrFail($line['sku_id']);
@@ -332,6 +395,9 @@ class KozaWorkflow
                 abort_unless($this->access->has($actor, 'operations'), 403);
                 if ($r->immutable || ! in_array($r->type, ['variant', 'sample', 'quote', 'offering'])) {
                     $this->fail('invalid_action');
+                }
+                if ($r->type !== 'variant') {
+                    abort_unless($this->access->money($actor, 'cost'), 403);
                 }
                 if ($r->type === 'variant') {
                     $this->required($r, ['composition', 'dimensions', 'weight', 'colour', 'workmanship', 'packaging', 'unit', 'moq', 'lead_time', 'capacity', 'physical_evidence', 'rights_evidence', 'valid_until']);
@@ -570,6 +636,9 @@ class KozaWorkflow
         $next = KozaRecord::create(['type' => 'opportunity', 'title' => $r->title.' · Reorder', 'company_id' => $r->company_id, 'owner_id' => $actor->id, 'state' => 'draft', 'version' => 1, 'edition' => 1, 'data' => ['kind' => 'reorder', 'next_step' => 'Validate current need, quantity, cost and delivery'], 'source' => 'order:'.$r->id]);
         $next->links()->create(['relation' => 'prior_order', 'target_id' => $r->id]);
         $this->event($actor, $next, 'reorder_created', $reason);
+        $r->version++;
+        $r->save();
+        $this->event($actor, $r, 'reorder_linked', $reason, ['opportunity_id' => $next->id]);
 
         return $next;
     }
@@ -667,6 +736,11 @@ class KozaWorkflow
                 $this->fail('origin_evidence_required');
             }
             if ($state === 'released') {
+                foreach ($r->links()->where('relation', 'material')->get() as $allocation) {
+                    if (! $allocation->quantity || empty($allocation->unit) || D::of($allocation->quantity)->isLessThanOrEqualTo('0')) {
+                        $this->fail('quantity_unit_required');
+                    }
+                }
                 $qc = KozaRecord::where('type', 'qc')->whereHas('links', fn ($q) => $q->where('relation', 'lot')->where('target_id', $r->id))->latest('id')->first();
                 if (! $qc || $qc->state !== 'released' || $qc->data['result'] !== 'pass') {
                     $this->fail('qc_pass_required');
@@ -731,6 +805,11 @@ class KozaWorkflow
             if ($state === 'active') {
                 $this->required($r, ['tested_on', 'result']);
             }
+        } elseif ($r->type === 'cost' && $state === 'active') {
+            $this->required($r, ['amount', 'currency', 'category', 'incurred_on', 'method', 'external_reference']);
+            if (! $r->company_id) {
+                $this->fail('required', 'company_id');
+            }
         } elseif ($r->type === 'insight' && $state === 'validated') {
             $this->required($r, ['question', 'observation', 'level', 'method', 'sample', 'evidence', 'observed_on', 'confidence']);
         }
@@ -751,10 +830,24 @@ class KozaWorkflow
         // Serialize all partial shipments for an order to prevent concurrent over-shipment.
         KozaRecord::where('id', $order->id)->lockForUpdate()->firstOrFail();
         if (($r->data['direction'] ?? null) === 'return') {
-            $this->linked($r, 'return_of');
-            if ($state !== 'returned') {
+            $originals = $this->linked($r, 'return_of');
+            if ($state !== 'returned' || $originals->count() !== 1 || $r->state !== 'draft') {
                 $this->fail('return_state_required');
             }
+            $original = $originals->first();
+            if ($original->state !== 'delivered' || ! $original->links()->where('relation', 'order')->where('target_id', $order->id)->exists()) {
+                $this->fail('delivered_order_required');
+            }
+            $this->required($r, ['delivered_at', 'delivery_evidence']);
+            $previous = KozaRecord::where('type', 'shipment')->where('state', 'returned')->whereHas('links', fn ($q) => $q->where('relation', 'return_of')->where('target_id', $original->id))->get();
+            $sum = D::of($r->data['quantity']);
+            foreach ($previous as $returned) {
+                $sum = $sum->plus($returned->data['quantity']);
+            }
+            if ($r->data['unit'] !== ($original->data['unit'] ?? null) || $sum->isGreaterThan($original->data['quantity'])) {
+                $this->fail('order_quantity_exceeded');
+            }
+            $r->immutable = true;
 
             return;
         }
@@ -770,9 +863,24 @@ class KozaWorkflow
                 if ($lot->state !== 'released' || ! $lot->links()->where('relation', 'order')->where('target_id', $order->id)->exists()) {
                     $this->fail('released_lot_required');
                 }
+                $qc = KozaRecord::where('type', 'qc')->whereHas('links', fn ($q) => $q->where('relation', 'lot')->where('target_id', $lot->id))->latest('id')->first();
+                if (! $qc || $qc->state !== 'released' || ($qc->data['result'] ?? null) !== 'pass') {
+                    $this->fail('qc_pass_required');
+                }
+                $variantIds = $lot->links()->where('relation', 'variant')->pluck('target_id');
+                if ($variantIds->count() !== 1 || ! DB::table('koza_lines')->where('record_id', $order->id)->where('variant_id', $variantIds[0])->where('unit', $r->data['unit'])->exists()) {
+                    $this->fail('shipment_variant_mismatch');
+                }
                 $link = $r->links()->where('relation', 'lot')->where('target_id', $lot->id)->firstOrFail();
                 if (! $link->quantity || $link->unit !== $r->data['unit'] || $link->unit !== ($lot->data['unit'] ?? null)) {
                     $this->fail('quantity_unit_required');
+                }
+                $otherLots = KozaRecord::where('type', 'lot')->whereHas('links', fn ($q) => $q->where('relation', 'variant')->where('target_id', $variantIds[0]))->pluck('id');
+                $priorVariant = DB::table('koza_links as l')->join('koza_records as s', 's.id', '=', 'l.record_id')->where('s.type', 'shipment')->whereIn('s.state', ['dispatched', 'in_transit', 'delivered'])->where('s.id', '!=', $r->id)->where('l.relation', 'lot')->whereIn('l.target_id', $otherLots)->whereIn('s.id', DB::table('koza_links')->where('relation', 'order')->where('target_id', $order->id)->select('record_id'))->sum('l.quantity');
+                $currentVariant = $r->links()->where('relation', 'lot')->whereIn('target_id', $otherLots)->sum('quantity');
+                $orderedVariant = DB::table('koza_lines')->where('record_id', $order->id)->where('variant_id', $variantIds[0])->where('unit', $link->unit)->sum('quantity');
+                if (D::of((string) $priorVariant)->plus((string) $currentVariant)->isGreaterThan((string) $orderedVariant)) {
+                    $this->fail('order_quantity_exceeded');
                 }
                 $total = $total->plus($link->quantity);
                 $prior = DB::table('koza_links as l')->join('koza_records as r', 'r.id', '=', 'l.record_id')->where('l.relation', 'lot')->where('l.target_id', $lot->id)->where('r.type', 'shipment')->whereIn('r.state', ['dispatched', 'in_transit', 'delivered'])->where('r.id', '!=', $r->id)->sum('l.quantity');

@@ -28,6 +28,7 @@ return new class extends Migration
             $t->string('type', 40)->index();
             $t->string('title', 180)->index();
             $t->foreignId('company_id')->nullable()->constrained('companies')->restrictOnDelete();
+            $t->foreignId('contact_id')->nullable()->constrained('contacts')->restrictOnDelete();
             $t->foreignId('owner_id')->constrained('users')->restrictOnDelete();
             $t->foreignId('parent_id')->nullable()->constrained('koza_records')->restrictOnDelete();
             $t->string('state', 40)->default('draft');

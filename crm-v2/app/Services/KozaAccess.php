@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Contact;
 use App\Models\KozaRecord;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -45,7 +46,7 @@ class KozaAccess
             $types = array_merge($types, $cross[$domain] ?? []);
         }
         // Domain ownership does not expose private learning plans or other legacy work.
-        $q = KozaRecord::query()->where(fn ($q) => $q->whereNull('company_id')->orWhereHas('company'));
+        $q = KozaRecord::query()->where(fn ($q) => $q->whereNull('company_id')->orWhereHas('company'))->where(fn ($q) => $q->whereNull('contact_id')->orWhereIn('contact_id', Contact::visibleTo($user)->select('id')));
         if (! $user->active) {
             return $q->whereRaw('1 = 0');
         }
@@ -108,6 +109,10 @@ class KozaAccess
     public function serialize(User $user, KozaRecord $record): array
     {
         $data = array_intersect_key($record->data ?? [], $this->fields($user, $record->type));
+        if ($record->type === 'contact' && $record->contact) {
+            $data['email'] = $record->contact->email;
+            $data['phone'] = $record->contact->phone;
+        }
         $links = $record->links()->get();
         $visible = $this->visible($user)->whereIn('id', $links->pluck('target_id'))->get()->keyBy('id');
         $lines = DB::table('koza_lines')->where('record_id', $record->id)->orderBy('position')->get()->map(function ($line) use ($user) {
@@ -121,8 +126,8 @@ class KozaAccess
         })->all();
 
         return [
-            'id' => $record->id, 'type' => $record->type, 'title' => $record->type === 'account' ? ($record->company?->name ?? $record->title) : $record->title,
-            'company_id' => $record->company_id, 'company' => $record->company?->name, 'owner_id' => $record->owner_id,
+            'id' => $record->id, 'type' => $record->type, 'title' => $record->type === 'account' ? ($record->company?->name ?? $record->title) : ($record->type === 'contact' ? ($record->contact?->name ?? $record->title) : $record->title),
+            'contact_id' => $record->contact_id, 'company_id' => $record->company_id, 'company' => $record->company?->name, 'owner_id' => $record->owner_id,
             'owner' => $record->owner?->name, 'state' => $record->state, 'version' => $record->version, 'edition' => $record->edition,
             'parent_id' => $record->parent_id, 'data' => $data, 'source' => $record->source, 'due_at' => $record->due_at?->format('Y-m-d'),
             'verified_at' => $record->verified_at?->toIso8601String(), 'updated_at' => $record->updated_at->toIso8601String(),

@@ -1397,3 +1397,5 @@ window.KOZA_I18N = {
     "en": "Current technical variant verification is required."
   }
 };
+
+Object.assign(window.KOZA_I18N, {"error_frozen_scope": {"tr": "Kesinleşen kapsam değiştirilemez. Yeni kayıt / revizyon oluşturun.", "en": "The committed scope cannot be changed. Create a new record or revision."}, "error_duplicate_contact": {"tr": "Bu kişi mevcut kayıtlarda olabilir. Mevcut kişiyi seçin veya firma sözlüğünde inceleyin.", "en": "This person may already exist. Select the existing contact or review the matching workspace."}, "error_duplicate_variant_line": {"tr": "Aynı varyant ve birim için tek satır kullanın.", "en": "Use one line per variant and unit."}, "error_shipment_variant_mismatch": {"tr": "Lot varyantı sipariş satırlarıyla eşleşmiyor.", "en": "The lot variant does not match an order line."}});

@@ -229,4 +229,68 @@ class KozaWorkflowTest extends TestCase
         $this->assertSame('stopped', $right->state);
         $this->actingAs($this->b)->postJson('/koza/api/records/'.$right->id.'/actions', ['version' => $right->version, 'action' => 'right_business', 'reason' => 'Resume'])->assertForbidden();
     }
+
+    private function orderFixture(): KozaRecord
+    {
+        $op = $this->opportunity();
+        $q = $this->act($this->u, $this->quote($op), 'verify');
+        $q = $this->act($this->n, $q, 'approve');
+        $q = $this->act($this->b, $q, 'dispatch', ['evidence' => 'Sent PDF']);
+        $q = $this->act($this->b, $q, 'accept', ['evidence' => 'Signed PO']);
+        $op->links()->create(['relation' => 'quote', 'target_id' => $q->id]);
+        $op = $this->act($this->b, $op, 'transition', ['state' => 'negotiation']);
+
+        return $this->act($this->b, $op, 'won');
+    }
+
+    public function test_partial_shipments_are_allocated_and_committed_scope_cannot_be_overwritten(): void
+    {
+        $order = $this->orderFixture();
+        $variant = DB::table('koza_lines')->where('record_id', $order->id)->value('variant_id');
+        $manufacturer = $this->create($this->u, 'manufacturer', ['facility' => 'Verified textile facility']);
+        $material = $this->create($this->u, 'material', ['batch_code' => 'M-1', 'quantity' => '30', 'unit' => 'kg']);
+        $lot = $this->create($this->u, 'lot', ['quantity' => '100', 'unit' => 'piece', 'facility' => 'Verified textile facility', 'produced_on' => '2026-10-02'], [
+            ['relation' => 'variant', 'target_id' => $variant], ['relation' => 'order', 'target_id' => $order->id], ['relation' => 'manufacturer', 'target_id' => $manufacturer->id], ['relation' => 'material', 'target_id' => $material->id, 'quantity' => '20', 'unit' => 'kg']]);
+        $qc = $this->create($this->u, 'qc', ['method' => 'Visual and dimensional', 'result' => 'pass', 'tested_on' => '2026-10-02', 'inspector' => 'Busra', 'evidence' => 'QC report', 'release_reason' => 'Within specification'], [['relation' => 'lot', 'target_id' => $lot->id]]);
+        $this->act($this->u, $qc, 'transition', ['state' => 'released']);
+        $lot = $this->act($this->u, $lot, 'transition', ['state' => 'released']);
+        $ship = $this->create($this->u, 'shipment', ['direction' => 'outbound', 'quantity' => '60', 'unit' => 'piece', 'carrier' => 'Carrier', 'tracking' => 'T-1', 'shipped_at' => '2026-10-02 10:00:00', 'communication_on' => '2026-10-03'], [['relation' => 'order', 'target_id' => $order->id], ['relation' => 'lot', 'target_id' => $lot->id, 'quantity' => '60', 'unit' => 'piece']]);
+        $ship = $this->act($this->u, $ship, 'transition', ['state' => 'dispatched']);
+        $this->actingAs($this->u)->putJson('/koza/api/records/'.$ship->id, ['version' => $ship->version, 'title' => $ship->title, 'company_id' => $this->company, 'data' => ['quantity' => '200']])->assertUnprocessable();
+        $second = $this->create($this->u, 'shipment', ['direction' => 'outbound', 'quantity' => '50', 'unit' => 'piece', 'carrier' => 'Carrier', 'tracking' => 'T-2', 'shipped_at' => '2026-10-02 10:00:00', 'communication_on' => '2026-10-03'], [['relation' => 'order', 'target_id' => $order->id], ['relation' => 'lot', 'target_id' => $lot->id, 'quantity' => '50', 'unit' => 'piece']]);
+        $this->postJson('/koza/api/records/'.$second->id.'/actions', ['version' => $second->version, 'action' => 'transition', 'state' => 'dispatched', 'reason' => 'Excess shipment'])->assertUnprocessable();
+        $this->assertSame('draft', $second->fresh()->state);
+        $ship = $this->act($this->u, $ship, 'transition', ['state' => 'in_transit']);
+        $ship = app(KozaWorkflow::class)->save($this->u, ['version' => $ship->version, 'title' => $ship->title, 'company_id' => $this->company, 'data' => ['delivered_at' => '2026-10-02 11:00:00', 'delivery_evidence' => 'Signed delivery']], $ship->id);
+        $ship = $this->act($this->u, $ship, 'transition', ['state' => 'delivered']);
+        $this->assertTrue($ship->immutable);
+        $this->assertSame('confirmed', $order->fresh()->state);
+    }
+
+    public function test_contact_metadata_reuses_existing_identity_and_private_acl(): void
+    {
+        $contact = $this->create($this->b, 'contact', ['kind' => 'person', 'email' => 'buyer@example.test', 'role' => 'Buyer']);
+        $this->assertNotNull($contact->contact_id);
+        $this->assertDatabaseHas('contacts', ['id' => $contact->contact_id, 'name' => $contact->title]);
+        $peer = $this->user('privatepeer');
+        DB::table('koza_access')->insert(['user_id' => $peer->id, 'domains' => '["market"]', 'read_cost' => false, 'read_finance' => false, 'granted_by' => $this->n->id, 'created_at' => now(), 'updated_at' => now()]);
+        $this->actingAs($peer)->getJson('/koza/api/records/'.$contact->id)->assertNotFound();
+    }
+
+    public function test_sample_round_approval_and_feedback_leave_original_content_intact(): void
+    {
+        $op = $this->opportunity();
+        $v = $this->variant();
+        $sample = $this->create($this->u, 'sample', ['purpose' => 'Purchase decision', 'decision_owner' => 'Buyer', 'address' => 'Confirmed address', 'quantity' => '1', 'price_context' => '10 GBP', 'sample_cost' => '20', 'shipping_cost' => '10', 'currency' => 'GBP', 'feedback_on' => '2026-10-10', 'success_criteria' => 'Accept construction', 'physical_evidence' => 'Sample photos'], [['relation' => 'opportunity', 'target_id' => $op->id], ['relation' => 'variant', 'target_id' => $v->id]]);
+        $sample = $this->act($this->u, $sample, 'verify');
+        $sample = $this->act($this->n, $sample, 'approve');
+        $sample = $this->act($this->b, $sample, 'dispatch', ['evidence' => 'Tracking sample-1']);
+        $sample = $this->act($this->b, $sample, 'sample_feedback', ['evidence' => 'Change label position']);
+        $new = $this->act($this->b, $sample, 'revision');
+        $this->assertSame(2, $new->edition);
+        $this->assertSame('Change label position', $sample->fresh()->data['feedback']);
+        $this->assertArrayNotHasKey('feedback', $new->data);
+        $this->assertSame('draft', $new->state);
+        $this->assertFalse(app(KozaWorkflow::class)->approved($new, 'commercial'));
+    }
 }

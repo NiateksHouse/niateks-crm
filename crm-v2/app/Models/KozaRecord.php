@@ -21,6 +21,11 @@ class KozaRecord extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class);
+    }
+
     public function links()
     {
         return $this->hasMany(KozaLink::class, 'record_id');

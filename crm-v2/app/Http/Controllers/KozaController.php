@@ -44,6 +44,7 @@ class KozaController
 
         return response()->json(['user' => ['id' => $u->id, 'name' => $u->name, 'domains' => $this->access->domains($u), 'read_cost' => $this->access->money($u, 'cost'), 'read_finance' => $this->access->money($u), 'business_owner' => (bool) $u->can_view_all_finance],
             'locale' => $pref?->locale ?? 'tr-TR', 'timezone' => $pref?->timezone ?? 'Europe/Istanbul', 'catalog' => $catalog, 'counts' => $counts,
+            'people' => User::where('active', true)->orderBy('name')->get(['id', 'name']),
             'companies' => Company::orderBy('name')->get(['id', 'name', 'country_code', 'city', 'email', 'phone', 'website', 'tax_number', 'roles', 'version']),
             'projects' => Project::visibleTo($u)->with('company:id,name')->latest('updated_at')->limit(20)->get(['id', 'name', 'company_id', 'updated_at']),
             'contacts' => Contact::visibleTo($u)->with('company:id,name')->orderBy('name')->limit(250)->get(['id', 'name', 'company_id', 'email', 'phone']),
@@ -78,6 +79,7 @@ class KozaController
     {
         $model = $this->access->visible($r->user())->findOrFail($record);
         $result = $this->access->serialize($r->user(), $model);
+        $result['related'] = $model->company_id ? $this->access->visible($r->user())->where('company_id', $model->company_id)->where('id', '!=', $model->id)->where('type', '!=', 'capability')->latest('updated_at')->limit(30)->get()->map(fn ($item) => ['id' => $item->id, 'title' => $item->title, 'type' => $item->type, 'state' => $item->state]) : [];
         $result['history'] = DB::table('koza_events')->join('users', 'users.id', '=', 'koza_events.actor_id')->where('record_id', $record)->orderByDesc('koza_events.id')->limit(100)->get(['koza_events.id', 'action', 'version', 'koza_events.created_at', 'users.name']);
         $result['documents'] = $this->documentRows($r, Document::visibleTo($r->user())->whereIn('id', DB::table('koza_documents')->where('record_id', $record)->select('document_id'))->get());
         if (in_array($model->type, ['quote', 'order']) && $this->access->money($r->user())) {
