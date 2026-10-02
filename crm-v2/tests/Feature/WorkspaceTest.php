@@ -36,7 +36,7 @@ class WorkspaceTest extends TestCase
     public function test_legacy_navigation_opens_the_implemented_workspace(): void
     {
         $this->actingAs($this->user());
-        $this->get('/home')->assertOk()->assertSee('koza-v1.js')->assertSee('English · UK')->assertSee('Türkçe · TR');
+        $this->get('/home')->assertOk()->assertSee('koza-v1.js')->assertSee('>ENG<', false)->assertSee('>TR<', false)->assertDontSee('English · UK');
         foreach (['products' => 'products', 'tasks' => 'focus', 'samples' => 'samples', 'quotes' => 'quotes', 'orders' => 'orders', 'finance' => 'commercial'] as $module => $view) {
             $this->get('/workspace/'.$module)->assertRedirect('/home#'.$view);
         }
