@@ -300,4 +300,76 @@ class KozaWorkflowTest extends TestCase
         $this->assertSame('draft', $new->state);
         $this->assertFalse(app(KozaWorkflow::class)->approved($new, 'commercial'));
     }
+
+    public function test_acceptance_customer_to_delivery_service_and_reorder_in_disposable_database(): void
+    {
+        // All policy values and commercial evidence below are disposable fixtures, never staging configuration.
+        $account = $this->create($this->b, 'account', ['segment' => 'TEST retailer', 'product_evidence' => 'TEST catalogue', 'offer_hypothesis' => 'TEST tea towel', 'research_date' => '2026-10-02', 'next_step' => 'TEST qualification']);
+        $account = $this->act($this->b, $account, 'transition', ['state' => 'qualified']);
+        $op = $this->opportunity();
+        $quote = $this->quote($op);
+        $variant = DB::table('koza_lines')->where('record_id', $quote->id)->value('variant_id');
+        $sample = $this->create($this->u, 'sample', ['purpose' => 'TEST purchase decision', 'decision_owner' => 'TEST buyer', 'address' => 'TEST address', 'quantity' => '1', 'price_context' => '10 GBP', 'sample_cost' => '20', 'shipping_cost' => '10', 'currency' => 'GBP', 'feedback_on' => '2026-10-10', 'success_criteria' => 'TEST construction accepted', 'physical_evidence' => 'TEST sample report'], [['relation' => 'opportunity', 'target_id' => $op->id], ['relation' => 'variant', 'target_id' => $variant]]);
+        $sample = $this->act($this->u, $sample, 'verify');
+        $sample = $this->act($this->n, $sample, 'approve');
+        $sample = $this->act($this->b, $sample, 'dispatch', ['evidence' => 'TEST tracking only; no external dispatch']);
+        $sample = $this->act($this->b, $sample, 'sample_feedback', ['evidence' => 'TEST sample accepted']);
+        $quote = $this->act($this->u, $quote, 'verify');
+        $quote = $this->act($this->n, $quote, 'approve');
+        $quote = $this->act($this->b, $quote, 'dispatch', ['evidence' => 'TEST PDF only; no email']);
+        $quote = $this->act($this->b, $quote, 'accept', ['evidence' => 'TEST purchase order']);
+        $op = app(KozaWorkflow::class)->save($this->b, ['version' => $op->version, 'title' => $op->title, 'company_id' => $this->company, 'data' => [], 'links' => [['relation' => 'quote', 'target_id' => $quote->id], ['relation' => 'sample', 'target_id' => $sample->id]]], $op->id);
+        $op = $this->act($this->b, $op, 'transition', ['state' => 'negotiation']);
+        $order = $this->act($this->b, $op, 'won');
+        $this->assertSame($order->id, $this->act($this->b, $op->fresh(), 'won')->id);
+        $order = app(KozaWorkflow::class)->save($this->u, ['version' => $order->version, 'title' => $order->title, 'company_id' => $this->company, 'data' => ['original_promise' => '2026-10-03', 'delivered_at' => '2026-10-02 11:00:00']], $order->id);
+        $order = $this->act($this->u, $order, 'transition', ['state' => 'production']);
+        $manufacturer = $this->create($this->u, 'manufacturer', ['facility' => 'TEST facility']);
+        $material = $this->create($this->u, 'material', ['batch_code' => 'TEST-M-1', 'quantity' => '30', 'unit' => 'kg']);
+        $lot = $this->create($this->u, 'lot', ['quantity' => '100', 'unit' => 'piece', 'facility' => 'TEST facility', 'produced_on' => '2026-10-02'], [['relation' => 'variant', 'target_id' => $variant], ['relation' => 'order', 'target_id' => $order->id], ['relation' => 'manufacturer', 'target_id' => $manufacturer->id], ['relation' => 'material', 'target_id' => $material->id, 'quantity' => '20', 'unit' => 'kg']]);
+        $qc = $this->create($this->u, 'qc', ['method' => 'TEST dimensional', 'result' => 'pass', 'tested_on' => '2026-10-02', 'inspector' => 'TEST inspector', 'evidence' => 'TEST QC', 'release_reason' => 'TEST specification'], [['relation' => 'lot', 'target_id' => $lot->id]]);
+        $qc = $this->act($this->u, $qc, 'transition', ['state' => 'released']);
+        $lot = $this->act($this->u, $lot, 'transition', ['state' => 'released']);
+        $order = $this->act($this->u, $order, 'transition', ['state' => 'quality']);
+        $order = $this->act($this->u, $order, 'transition', ['state' => 'shipment']);
+        $ship = $this->create($this->u, 'shipment', ['direction' => 'outbound', 'quantity' => '100', 'unit' => 'piece', 'carrier' => 'TEST carrier', 'tracking' => 'TEST-T-1', 'shipped_at' => '2026-10-02 10:00:00', 'communication_on' => '2026-10-03', 'delivered_at' => '2026-10-02 11:00:00', 'delivery_evidence' => 'TEST signed delivery'], [['relation' => 'order', 'target_id' => $order->id], ['relation' => 'lot', 'target_id' => $lot->id, 'quantity' => '100', 'unit' => 'piece']]);
+        foreach (['dispatched', 'in_transit', 'delivered'] as $stage) {
+            $ship = $this->act($this->u, $ship, 'transition', ['state' => $stage]);
+        }
+        $order = $this->act($this->u, $order, 'transition', ['state' => 'delivered']);
+        $this->assertSame('unpaid', $order->data['payment_status']);
+        $service = $this->create($this->b, 'service', ['issue' => 'TEST missing care instructions', 'severity' => 'attention', 'impact' => 'TEST additional contact', 'opened_at' => '2026-10-02 11:05:00', 'next_step' => 'TEST send instructions', 'communication_on' => '2026-10-02', 'root_cause' => 'TEST packing omission', 'resolution' => 'TEST instructions supplied', 'resolved_at' => '2026-10-02 11:30:00'], [['relation' => 'order', 'target_id' => $order->id], ['relation' => 'shipment', 'target_id' => $ship->id], ['relation' => 'lot', 'target_id' => $lot->id]]);
+        $service = $this->act($this->b, $service, 'transition', ['state' => 'open']);
+        $this->actingAs($this->b)->getJson('/koza/api/dashboard')->assertOk()->assertJsonPath('priorities.customer.id', $service->id);
+        $service = $this->act($this->b, $service, 'transition', ['state' => 'resolved']);
+        $cost = $this->create($this->n, 'cost', ['amount' => '12.50', 'currency' => 'GBP', 'category' => 'service', 'incurred_on' => '2026-10-02', 'method' => 'TEST actual expense', 'external_reference' => 'TEST-COST-1', 'included_in_order' => false], [['relation' => 'service', 'target_id' => $service->id]]);
+        $this->act($this->n, $cost, 'transition', ['state' => 'active']);
+        $this->actingAs($this->n)->getJson('/koza/api/analytics?from=2026-10-01&to=2026-10-03')->assertOk()->assertJsonPath('rows.0.service', '12.50')->assertJsonPath('rows.0.relationship', '482.00')->assertJsonPath('actual_finance_connected', false);
+        $next = $this->act($this->b, $order, 'reorder');
+        $this->assertSame('draft', $next->state);
+        $this->assertSame('reorder', $next->data['kind']);
+        $this->assertSame($order->id, $next->links()->where('relation', 'prior_order')->value('target_id'));
+        $this->assertSame(1, KozaRecord::where('type', 'order')->count());
+        $trace = $this->actingAs($this->u)->getJson('/koza/api/records/'.$ship->id.'/trace')->assertOk();
+        foreach ([$order->id, $lot->id, $material->id, $manufacturer->id, $qc->id] as $id) {
+            $this->assertContains($id, array_column($trace->json('nodes'), 'id'));
+        }
+        $this->actingAs($this->b)->getJson('/koza/api/dashboard')->assertOk()->assertJsonPath('weekly.resolved', 1)->assertJsonPath('weekly.reordered', 0)->assertJsonPath('priorities.customer', null);
+        $this->assertSame('qualified', $account->fresh()->state);
+    }
+
+    public function test_acceptance_unconfigured_live_style_permissions_and_policy_fail_closed(): void
+    {
+        DB::table('koza_controls')->delete();
+        $commercialOnly = $this->user('TEST-commercial-only', 'admin');
+        $commercialOnly->forceFill(['can_view_all_finance' => true])->save();
+        $this->actingAs($commercialOnly)->postJson('/koza/api/records', ['type' => 'account', 'title' => 'TEST access boundary', 'company_id' => $this->company, 'data' => []])->assertForbidden();
+        $quote = $this->quote();
+        $this->actingAs($this->u)->postJson('/koza/api/records/'.$quote->id.'/actions', ['version' => $quote->version, 'action' => 'verify', 'reason' => 'TEST missing policy'])->assertUnprocessable();
+        $this->actingAs($this->n)->postJson('/koza/api/records/'.$quote->id.'/actions', ['version' => $quote->version, 'action' => 'approve', 'reason' => 'TEST missing policy'])->assertUnprocessable();
+        $this->assertSame('draft', $quote->fresh()->state);
+        $this->assertSame(0, DB::table('koza_approvals')->count());
+        $this->assertSame(0, KozaRecord::where('type', 'order')->count());
+        $this->assertSame(0, DB::table('koza_controls')->count());
+    }
 }
