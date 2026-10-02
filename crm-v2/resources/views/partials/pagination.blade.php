@@ -1,0 +1,1 @@
+<nav aria-label="Sayfalar">@if($records->previousPageUrl())<a href="{{ $records->previousPageUrl() }}">← Önceki</a>@endif<span>Sayfa {{ $records->currentPage() }}</span>@if($records->nextPageUrl())<a href="{{ $records->nextPageUrl() }}">Sonraki →</a>@endif</nav>

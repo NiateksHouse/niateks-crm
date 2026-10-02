@@ -1,0 +1,2657 @@
+{
+  "account": {
+    "label": {
+      "tr": "Müşteriler",
+      "en": "Accounts"
+    },
+    "domain": "market",
+    "fields": {
+      "legal_name": {
+        "label": {
+          "tr": "Hukuki ad",
+          "en": "Legal name"
+        },
+        "type": "text"
+      },
+      "registration": {
+        "label": {
+          "tr": "Şirket kayıt no / URL",
+          "en": "Company registration"
+        },
+        "type": "text"
+      },
+      "segment": {
+        "label": {
+          "tr": "Segment",
+          "en": "Segment"
+        },
+        "type": "select",
+        "options": [
+          "Independent home & gift retailer",
+          "Small retail chain",
+          "E-commerce",
+          "Dropship",
+          "Private label brand",
+          "Museum / heritage / garden",
+          "Hotel / spa / hospitality",
+          "Padel / sports club",
+          "Distributor / agent",
+          "Watch / unsuitable"
+        ]
+      },
+      "channel": {
+        "label": {
+          "tr": "Satış kanalı",
+          "en": "Sales channel"
+        },
+        "type": "text"
+      },
+      "company_type": {
+        "label": {
+          "tr": "Şirket türü",
+          "en": "Company type"
+        },
+        "type": "text"
+      },
+      "scale": {
+        "label": {
+          "tr": "Ölçek tahmini",
+          "en": "Estimated scale"
+        },
+        "type": "text"
+      },
+      "category": {
+        "label": {
+          "tr": "Mevcut kategori",
+          "en": "Current category"
+        },
+        "type": "text"
+      },
+      "retail_band": {
+        "label": {
+          "tr": "Retail fiyat bandı",
+          "en": "Retail price context"
+        },
+        "type": "text"
+      },
+      "product_evidence": {
+        "label": {
+          "tr": "Ürün uyumu kanıtı",
+          "en": "Product fit evidence"
+        },
+        "type": "textarea"
+      },
+      "research_date": {
+        "label": {
+          "tr": "Araştırma tarihi",
+          "en": "Research date"
+        },
+        "type": "date"
+      },
+      "offer_hypothesis": {
+        "label": {
+          "tr": "Teklif hipotezi",
+          "en": "Offer hypothesis"
+        },
+        "type": "text"
+      },
+      "why_now": {
+        "label": {
+          "tr": "Neden şimdi",
+          "en": "Why now"
+        },
+        "type": "text"
+      },
+      "contact_route": {
+        "label": {
+          "tr": "İletişim yolu",
+          "en": "Contact route"
+        },
+        "type": "text"
+      },
+      "personalization": {
+        "label": {
+          "tr": "Kişiselleştirme gerekçesi",
+          "en": "Personalisation reason"
+        },
+        "type": "text"
+      },
+      "cta": {
+        "label": {
+          "tr": "Açık sonraki adım",
+          "en": "Clear CTA"
+        },
+        "type": "text"
+      },
+      "contact_basis": {
+        "label": {
+          "tr": "İletişim uygunluğu dayanağı",
+          "en": "Contact eligibility basis"
+        },
+        "type": "text"
+      },
+      "contacted_at": {
+        "label": {
+          "tr": "Temas tarihi",
+          "en": "Contacted on"
+        },
+        "type": "date"
+      },
+      "message_evidence": {
+        "label": {
+          "tr": "Gönderilen mesaj / kanıt",
+          "en": "Sent message evidence"
+        },
+        "type": "textarea"
+      },
+      "meaningful_response": {
+        "label": {
+          "tr": "Anlamlı yanıt kanıtı",
+          "en": "Meaningful response evidence"
+        },
+        "type": "textarea"
+      },
+      "need": {
+        "label": {
+          "tr": "İhtiyaç",
+          "en": "Need"
+        },
+        "type": "textarea"
+      },
+      "next_step": {
+        "label": {
+          "tr": "Sonraki adım",
+          "en": "Next step"
+        },
+        "type": "text"
+      },
+      "return_on": {
+        "label": {
+          "tr": "Yeniden temas tarihi",
+          "en": "Return date"
+        },
+        "type": "date"
+      },
+      "fit": {
+        "label": {
+          "tr": "Strategic Fit",
+          "en": "Strategic Fit"
+        },
+        "type": "select",
+        "options": [
+          "unknown",
+          "strong",
+          "needs_validation",
+          "weak"
+        ]
+      },
+      "fit_reason": {
+        "label": {
+          "tr": "Uyum gerekçesi / karşı kanıt",
+          "en": "Fit reason / contrary evidence"
+        },
+        "type": "textarea"
+      },
+      "opt_out": {
+        "label": {
+          "tr": "Pazarlamaya itiraz",
+          "en": "Marketing opt-out"
+        },
+        "type": "bool"
+      }
+    },
+    "relations": {},
+    "states": [
+      "research",
+      "qualified",
+      "contact_ready",
+      "contacted",
+      "engaged",
+      "discovery",
+      "nurture",
+      "stopped"
+    ]
+  },
+  "contact": {
+    "label": {
+      "tr": "Kişiler ve iletişim yolları",
+      "en": "Contacts and routes"
+    },
+    "domain": "market",
+    "fields": {
+      "kind": {
+        "label": {
+          "tr": "Kayıt türü",
+          "en": "Contact kind"
+        },
+        "type": "select",
+        "options": [
+          "person",
+          "channel"
+        ]
+      },
+      "role": {
+        "label": {
+          "tr": "Görev / karar rolü",
+          "en": "Role / decision role"
+        },
+        "type": "text"
+      },
+      "email": {
+        "label": {
+          "tr": "E-posta",
+          "en": "Email"
+        },
+        "type": "email"
+      },
+      "phone": {
+        "label": {
+          "tr": "Telefon",
+          "en": "Phone"
+        },
+        "type": "text"
+      },
+      "linkedin": {
+        "label": {
+          "tr": "LinkedIn",
+          "en": "LinkedIn"
+        },
+        "type": "url"
+      },
+      "verified_on": {
+        "label": {
+          "tr": "Doğrulama tarihi",
+          "en": "Verified on"
+        },
+        "type": "date"
+      },
+      "preference": {
+        "label": {
+          "tr": "İletişim tercihi",
+          "en": "Communication preference"
+        },
+        "type": "text"
+      },
+      "basis": {
+        "label": {
+          "tr": "İletişim gerekçesi",
+          "en": "Communication basis"
+        },
+        "type": "text"
+      },
+      "opt_out": {
+        "label": {
+          "tr": "Pazarlamaya itiraz",
+          "en": "Marketing opt-out"
+        },
+        "type": "bool"
+      },
+      "recontact_on": {
+        "label": {
+          "tr": "Yeniden temas",
+          "en": "Recontact on"
+        },
+        "type": "date"
+      }
+    },
+    "relations": {},
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "opportunity": {
+    "label": {
+      "tr": "Fırsatlar",
+      "en": "Opportunities"
+    },
+    "domain": "market",
+    "fields": {
+      "need": {
+        "label": {
+          "tr": "Gerçek satın alma ihtiyacı",
+          "en": "Verified purchasing need"
+        },
+        "type": "textarea"
+      },
+      "category": {
+        "label": {
+          "tr": "Ürün / kategori",
+          "en": "Product / category"
+        },
+        "type": "text"
+      },
+      "offer_path": {
+        "label": {
+          "tr": "Ana teklif yolu",
+          "en": "Main offer path"
+        },
+        "type": "select",
+        "options": [
+          "Stock Tea Towels",
+          "Niateks Story Collection",
+          "Adapted Private Label",
+          "Custom Private Label",
+          "Bath / Hospitality",
+          "Padel / Sports",
+          "Other"
+        ]
+      },
+      "quantity": {
+        "label": {
+          "tr": "Tahmini adet",
+          "en": "Estimated quantity"
+        },
+        "type": "number"
+      },
+      "price_context": {
+        "label": {
+          "tr": "Fiyat / retail bağlamı",
+          "en": "Price / retail context"
+        },
+        "type": "text"
+      },
+      "purchase_on": {
+        "label": {
+          "tr": "Satın alma zamanı",
+          "en": "Purchase date"
+        },
+        "type": "date"
+      },
+      "decision_path": {
+        "label": {
+          "tr": "Karar yolu / sahibi",
+          "en": "Decision path / owner"
+        },
+        "type": "text"
+      },
+      "economic_prefit": {
+        "label": {
+          "tr": "Ekonomik ön uygunluk",
+          "en": "Economic pre-fit"
+        },
+        "type": "textarea"
+      },
+      "purpose": {
+        "label": {
+          "tr": "Numune / teklif amacı",
+          "en": "Sample / quote purpose"
+        },
+        "type": "text"
+      },
+      "next_step": {
+        "label": {
+          "tr": "Sonraki adım",
+          "en": "Next step"
+        },
+        "type": "text"
+      },
+      "sample_waiver": {
+        "label": {
+          "tr": "Numune gerekmeme gerekçesi",
+          "en": "No-sample reason"
+        },
+        "type": "text"
+      },
+      "loss_reason": {
+        "label": {
+          "tr": "Kapanış nedeni",
+          "en": "Closure reason"
+        },
+        "type": "select",
+        "options": [
+          "Price",
+          "MOQ",
+          "Product fit",
+          "Timing",
+          "Competition",
+          "No decision",
+          "No response",
+          "Compliance",
+          "Future season",
+          "Unprofitable",
+          "Operational risk"
+        ]
+      },
+      "closing_evidence": {
+        "label": {
+          "tr": "Kapanış / PO kanıtı",
+          "en": "Closure / PO evidence"
+        },
+        "type": "textarea"
+      },
+      "kind": {
+        "label": {
+          "tr": "Fırsat türü",
+          "en": "Opportunity kind"
+        },
+        "type": "select",
+        "options": [
+          "first_order",
+          "reorder"
+        ]
+      },
+      "probability": {
+        "label": {
+          "tr": "Olasılık (0–1)",
+          "en": "Probability (0–1)"
+        },
+        "type": "number",
+        "sensitive": "finance"
+      },
+      "probability_source": {
+        "label": {
+          "tr": "Olasılık dayanağı / kalibrasyon",
+          "en": "Probability basis / calibration"
+        },
+        "type": "text",
+        "sensitive": "finance"
+      },
+      "reorder_on": {
+        "label": {
+          "tr": "Sipariş sonrası takip",
+          "en": "Post-order follow-up"
+        },
+        "type": "date"
+      }
+    },
+    "relations": {
+      "variant": [
+        "variant"
+      ],
+      "sample": [
+        "sample"
+      ],
+      "quote": [
+        "quote"
+      ],
+      "prior_order": [
+        "order"
+      ]
+    },
+    "states": [
+      "draft",
+      "commercially_qualified",
+      "solution_development",
+      "sample_quote",
+      "negotiation",
+      "won",
+      "lost",
+      "nurture",
+      "stopped"
+    ]
+  },
+  "product": {
+    "label": {
+      "tr": "Ürünler",
+      "en": "Products"
+    },
+    "domain": "operations",
+    "fields": {
+      "code": {
+        "label": {
+          "tr": "Ürün kodu",
+          "en": "Product code"
+        },
+        "type": "text"
+      },
+      "category": {
+        "label": {
+          "tr": "Kategori",
+          "en": "Category"
+        },
+        "type": "text"
+      },
+      "story": {
+        "label": {
+          "tr": "Koleksiyon / hikâye",
+          "en": "Collection / story"
+        },
+        "type": "textarea"
+      },
+      "use": {
+        "label": {
+          "tr": "Kullanım amacı",
+          "en": "Intended use"
+        },
+        "type": "text"
+      },
+      "design_origin": {
+        "label": {
+          "tr": "Tasarım kaynağı",
+          "en": "Design origin"
+        },
+        "type": "text"
+      },
+      "rights_evidence": {
+        "label": {
+          "tr": "Tasarım hakkı kanıtı",
+          "en": "Design rights evidence"
+        },
+        "type": "textarea"
+      },
+      "customer_need": {
+        "label": {
+          "tr": "Çözülen kullanım ihtiyacı",
+          "en": "Customer need"
+        },
+        "type": "textarea"
+      }
+    },
+    "relations": {
+      "insight": [
+        "insight"
+      ],
+      "experiment": [
+        "experiment"
+      ]
+    },
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "variant": {
+    "label": {
+      "tr": "Teknik varyantlar",
+      "en": "Variants"
+    },
+    "domain": "operations",
+    "fields": {
+      "composition": {
+        "label": {
+          "tr": "Malzeme / bileşim",
+          "en": "Material / composition"
+        },
+        "type": "text"
+      },
+      "dimensions": {
+        "label": {
+          "tr": "Ölçü",
+          "en": "Dimensions"
+        },
+        "type": "text"
+      },
+      "weight": {
+        "label": {
+          "tr": "Gramaj",
+          "en": "Weight"
+        },
+        "type": "text"
+      },
+      "colour": {
+        "label": {
+          "tr": "Renk / desen",
+          "en": "Colour / pattern"
+        },
+        "type": "text"
+      },
+      "workmanship": {
+        "label": {
+          "tr": "İşçilik",
+          "en": "Workmanship"
+        },
+        "type": "text"
+      },
+      "packaging": {
+        "label": {
+          "tr": "Paket / etiket / set",
+          "en": "Packaging / label / set"
+        },
+        "type": "text"
+      },
+      "unit": {
+        "label": {
+          "tr": "Ölçü birimi",
+          "en": "Unit"
+        },
+        "type": "text"
+      },
+      "moq": {
+        "label": {
+          "tr": "MOQ",
+          "en": "MOQ"
+        },
+        "type": "number"
+      },
+      "mcq": {
+        "label": {
+          "tr": "MCQ",
+          "en": "MCQ"
+        },
+        "type": "number"
+      },
+      "lead_time": {
+        "label": {
+          "tr": "Termin",
+          "en": "Lead time"
+        },
+        "type": "text"
+      },
+      "capacity": {
+        "label": {
+          "tr": "Kapasite / stok teyidi",
+          "en": "Capacity / stock verification"
+        },
+        "type": "text"
+      },
+      "physical_evidence": {
+        "label": {
+          "tr": "Fiziksel numune kanıtı",
+          "en": "Physical sample evidence"
+        },
+        "type": "textarea"
+      },
+      "rights_evidence": {
+        "label": {
+          "tr": "Tasarım hakkı",
+          "en": "Design rights evidence"
+        },
+        "type": "textarea"
+      },
+      "concept": {
+        "label": {
+          "tr": "Yalnız konsept",
+          "en": "Concept only"
+        },
+        "type": "bool"
+      },
+      "valid_until": {
+        "label": {
+          "tr": "Geçerlilik",
+          "en": "Valid until"
+        },
+        "type": "date"
+      }
+    },
+    "relations": {
+      "product": [
+        "product"
+      ],
+      "material": [
+        "material"
+      ]
+    },
+    "states": [
+      "draft",
+      "verified",
+      "superseded"
+    ]
+  },
+  "sku": {
+    "label": {
+      "tr": "Stok kodları",
+      "en": "SKUs"
+    },
+    "domain": "operations",
+    "fields": {
+      "code": {
+        "label": {
+          "tr": "SKU kodu",
+          "en": "SKU code"
+        },
+        "type": "text"
+      },
+      "barcode": {
+        "label": {
+          "tr": "Barkod",
+          "en": "Barcode"
+        },
+        "type": "text"
+      },
+      "stock": {
+        "label": {
+          "tr": "Doğrulanmış stok",
+          "en": "Verified stock"
+        },
+        "type": "number"
+      },
+      "unit": {
+        "label": {
+          "tr": "Birim",
+          "en": "Unit"
+        },
+        "type": "text"
+      },
+      "stock_source": {
+        "label": {
+          "tr": "Stok kaynağı",
+          "en": "Stock source"
+        },
+        "type": "text"
+      },
+      "stock_checked_at": {
+        "label": {
+          "tr": "Stok teyit zamanı",
+          "en": "Stock checked at"
+        },
+        "type": "datetime"
+      }
+    },
+    "relations": {
+      "variant": [
+        "variant"
+      ]
+    },
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "offering": {
+    "label": {
+      "tr": "Müşteri ticari sunumları",
+      "en": "Customer offerings"
+    },
+    "domain": "commercial",
+    "fields": {
+      "offer_path": {
+        "label": {
+          "tr": "Teklif yolu",
+          "en": "Offer path"
+        },
+        "type": "text"
+      },
+      "price": {
+        "label": {
+          "tr": "Birim fiyat",
+          "en": "Unit price"
+        },
+        "type": "money"
+      },
+      "currency": {
+        "label": {
+          "tr": "Para birimi",
+          "en": "Currency"
+        },
+        "type": "select",
+        "options": [
+          "GBP",
+          "USD",
+          "TRY",
+          "EUR"
+        ]
+      },
+      "moq": {
+        "label": {
+          "tr": "MOQ",
+          "en": "MOQ"
+        },
+        "type": "number"
+      },
+      "mcq": {
+        "label": {
+          "tr": "MCQ",
+          "en": "MCQ"
+        },
+        "type": "number"
+      },
+      "incoterm": {
+        "label": {
+          "tr": "Incoterm",
+          "en": "Incoterm"
+        },
+        "type": "text"
+      },
+      "delivery_place": {
+        "label": {
+          "tr": "Teslim yeri",
+          "en": "Delivery place"
+        },
+        "type": "text"
+      },
+      "packaging": {
+        "label": {
+          "tr": "Paket kapsamı",
+          "en": "Packaging scope"
+        },
+        "type": "text"
+      },
+      "lead_time": {
+        "label": {
+          "tr": "Termin",
+          "en": "Lead time"
+        },
+        "type": "text"
+      },
+      "payment_days": {
+        "label": {
+          "tr": "Ödeme vadesi (gün)",
+          "en": "Payment terms (days)"
+        },
+        "type": "number"
+      },
+      "valid_until": {
+        "label": {
+          "tr": "Geçerlilik",
+          "en": "Valid until"
+        },
+        "type": "date"
+      }
+    },
+    "relations": {
+      "variant": [
+        "variant"
+      ],
+      "sku": [
+        "sku"
+      ]
+    },
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "sample": {
+    "label": {
+      "tr": "Numuneler",
+      "en": "Samples"
+    },
+    "domain": "operations",
+    "fields": {
+      "purpose": {
+        "label": {
+          "tr": "Ticari amaç",
+          "en": "Commercial purpose"
+        },
+        "type": "text"
+      },
+      "decision_owner": {
+        "label": {
+          "tr": "Müşteri karar sahibi",
+          "en": "Customer decision owner"
+        },
+        "type": "text"
+      },
+      "address": {
+        "label": {
+          "tr": "Gönderim adresi",
+          "en": "Delivery address"
+        },
+        "type": "textarea"
+      },
+      "quantity": {
+        "label": {
+          "tr": "Hedef adet",
+          "en": "Target quantity"
+        },
+        "type": "number"
+      },
+      "price_context": {
+        "label": {
+          "tr": "Fiyat / retail bağlamı",
+          "en": "Price context"
+        },
+        "type": "text"
+      },
+      "sample_cost": {
+        "label": {
+          "tr": "Numune maliyeti",
+          "en": "Sample cost"
+        },
+        "type": "money",
+        "sensitive": "cost"
+      },
+      "shipping_cost": {
+        "label": {
+          "tr": "Kargo maliyeti",
+          "en": "Shipping cost"
+        },
+        "type": "money",
+        "sensitive": "cost"
+      },
+      "currency": {
+        "label": {
+          "tr": "Para birimi",
+          "en": "Currency"
+        },
+        "type": "select",
+        "options": [
+          "GBP",
+          "USD",
+          "TRY",
+          "EUR"
+        ]
+      },
+      "feedback_on": {
+        "label": {
+          "tr": "Feedback hedef tarihi",
+          "en": "Feedback target date"
+        },
+        "type": "date"
+      },
+      "success_criteria": {
+        "label": {
+          "tr": "İlerleme ölçütü",
+          "en": "Progress criterion"
+        },
+        "type": "text"
+      },
+      "physical_evidence": {
+        "label": {
+          "tr": "Teknik / fiziksel kanıt",
+          "en": "Technical / physical evidence"
+        },
+        "type": "textarea"
+      },
+      "dispatch_evidence": {
+        "label": {
+          "tr": "Gönderim kanıtı",
+          "en": "Dispatch evidence"
+        },
+        "type": "text"
+      },
+      "delivered_at": {
+        "label": {
+          "tr": "Gerçek teslim",
+          "en": "Actual delivery"
+        },
+        "type": "datetime"
+      },
+      "feedback": {
+        "label": {
+          "tr": "Müşteri feedback / tur sonucu",
+          "en": "Customer feedback / round result"
+        },
+        "type": "textarea"
+      },
+      "next_step": {
+        "label": {
+          "tr": "Sonraki adım",
+          "en": "Next step"
+        },
+        "type": "text"
+      }
+    },
+    "relations": {
+      "opportunity": [
+        "opportunity"
+      ],
+      "variant": [
+        "variant"
+      ],
+      "sku": [
+        "sku"
+      ]
+    },
+    "states": [
+      "draft",
+      "verified",
+      "approved",
+      "sent",
+      "delivered",
+      "feedback_received"
+    ]
+  },
+  "quote": {
+    "label": {
+      "tr": "Teklifler",
+      "en": "Quotes"
+    },
+    "domain": "commercial",
+    "fields": {
+      "currency": {
+        "label": {
+          "tr": "Para birimi",
+          "en": "Currency"
+        },
+        "type": "select",
+        "options": [
+          "GBP",
+          "USD",
+          "TRY",
+          "EUR"
+        ]
+      },
+      "packaging": {
+        "label": {
+          "tr": "Paket / etiket kapsamı",
+          "en": "Packaging / label scope"
+        },
+        "type": "text"
+      },
+      "moq": {
+        "label": {
+          "tr": "MOQ",
+          "en": "MOQ"
+        },
+        "type": "number"
+      },
+      "incoterm": {
+        "label": {
+          "tr": "Incoterm",
+          "en": "Incoterm"
+        },
+        "type": "text"
+      },
+      "delivery_place": {
+        "label": {
+          "tr": "Teslim yeri",
+          "en": "Delivery place"
+        },
+        "type": "text"
+      },
+      "lead_time": {
+        "label": {
+          "tr": "Termin",
+          "en": "Lead time"
+        },
+        "type": "text"
+      },
+      "payment_days": {
+        "label": {
+          "tr": "Ödeme vadesi (gün)",
+          "en": "Payment days"
+        },
+        "type": "number"
+      },
+      "valid_until": {
+        "label": {
+          "tr": "Geçerlilik",
+          "en": "Valid until"
+        },
+        "type": "date"
+      },
+      "cost_version": {
+        "label": {
+          "tr": "Maliyet sürümü",
+          "en": "Cost version"
+        },
+        "type": "text",
+        "sensitive": "cost"
+      },
+      "cost_checked_at": {
+        "label": {
+          "tr": "Maliyet doğrulaması",
+          "en": "Cost verified at"
+        },
+        "type": "datetime",
+        "sensitive": "cost"
+      },
+      "stock_checked_at": {
+        "label": {
+          "tr": "Stok / kapasite doğrulaması",
+          "en": "Stock / capacity checked at"
+        },
+        "type": "datetime"
+      },
+      "packaging_cost": {
+        "label": {
+          "tr": "Toplam paket / etiket",
+          "en": "Total packaging cost"
+        },
+        "type": "money",
+        "sensitive": "cost"
+      },
+      "sample_cost": {
+        "label": {
+          "tr": "Numune / geliştirme payı",
+          "en": "Sample / development allocation"
+        },
+        "type": "money",
+        "sensitive": "cost"
+      },
+      "freight_cost": {
+        "label": {
+          "tr": "Navlun / teslim gideri",
+          "en": "Freight cost"
+        },
+        "type": "money",
+        "sensitive": "cost"
+      },
+      "commission_cost": {
+        "label": {
+          "tr": "Komisyon",
+          "en": "Commission"
+        },
+        "type": "money",
+        "sensitive": "cost"
+      },
+      "reserve_cost": {
+        "label": {
+          "tr": "İade / kalite rezervi",
+          "en": "Return / quality reserve"
+        },
+        "type": "money",
+        "sensitive": "cost"
+      },
+      "other_cost": {
+        "label": {
+          "tr": "Siparişe özel diğer gider",
+          "en": "Other order costs"
+        },
+        "type": "money",
+        "sensitive": "cost"
+      },
+      "technical_evidence": {
+        "label": {
+          "tr": "Operasyon teyidi",
+          "en": "Operational verification"
+        },
+        "type": "textarea"
+      },
+      "dispatch_evidence": {
+        "label": {
+          "tr": "Müşteriye gönderim kanıtı",
+          "en": "Customer dispatch evidence"
+        },
+        "type": "text"
+      },
+      "acceptance": {
+        "label": {
+          "tr": "Müşteri kabulü / PO",
+          "en": "Customer acceptance / PO"
+        },
+        "type": "textarea"
+      },
+      "customer_reference": {
+        "label": {
+          "tr": "Müşteri referansı",
+          "en": "Customer reference"
+        },
+        "type": "text"
+      }
+    },
+    "relations": {
+      "opportunity": [
+        "opportunity"
+      ],
+      "variant": [
+        "variant"
+      ],
+      "sku": [
+        "sku"
+      ],
+      "offering": [
+        "offering"
+      ]
+    },
+    "states": [
+      "draft",
+      "verified",
+      "approved",
+      "sent",
+      "accepted",
+      "expired"
+    ]
+  },
+  "order": {
+    "label": {
+      "tr": "Siparişler",
+      "en": "Orders"
+    },
+    "domain": "operations",
+    "fields": {
+      "po": {
+        "label": {
+          "tr": "Müşteri PO",
+          "en": "Customer PO"
+        },
+        "type": "text"
+      },
+      "currency": {
+        "label": {
+          "tr": "Para birimi",
+          "en": "Currency"
+        },
+        "type": "select",
+        "options": [
+          "GBP",
+          "USD",
+          "TRY",
+          "EUR"
+        ]
+      },
+      "payment_plan": {
+        "label": {
+          "tr": "Ödeme planı",
+          "en": "Payment plan"
+        },
+        "type": "textarea"
+      },
+      "payment_status": {
+        "label": {
+          "tr": "Tahsilat durumu",
+          "en": "Payment status"
+        },
+        "type": "select",
+        "options": [
+          "unknown",
+          "unpaid",
+          "partial",
+          "paid"
+        ]
+      },
+      "payment_evidence": {
+        "label": {
+          "tr": "Tahsilat kaynağı",
+          "en": "Payment evidence"
+        },
+        "type": "text",
+        "sensitive": "finance"
+      },
+      "original_promise": {
+        "label": {
+          "tr": "İlk teslim sözü",
+          "en": "Original promise"
+        },
+        "type": "date"
+      },
+      "revised_promise": {
+        "label": {
+          "tr": "Mutabık revize tarih",
+          "en": "Agreed revised date"
+        },
+        "type": "date"
+      },
+      "change_reason": {
+        "label": {
+          "tr": "Değişiklik gerekçesi",
+          "en": "Change reason"
+        },
+        "type": "textarea"
+      },
+      "delivered_at": {
+        "label": {
+          "tr": "Gerçek teslim",
+          "en": "Actual delivery"
+        },
+        "type": "datetime"
+      },
+      "feedback": {
+        "label": {
+          "tr": "Teslim sonrası öğrenme",
+          "en": "Post-delivery learning"
+        },
+        "type": "textarea"
+      },
+      "reorder_on": {
+        "label": {
+          "tr": "Reorder takip tarihi",
+          "en": "Reorder follow-up date"
+        },
+        "type": "date"
+      }
+    },
+    "relations": {
+      "quote": [
+        "quote"
+      ],
+      "opportunity": [
+        "opportunity"
+      ],
+      "variant": [
+        "variant"
+      ],
+      "prior_order": [
+        "order"
+      ]
+    },
+    "states": [
+      "draft",
+      "confirmed",
+      "production",
+      "quality",
+      "shipment",
+      "delivered",
+      "cancelled"
+    ]
+  },
+  "lot": {
+    "label": {
+      "tr": "Üretim lotları",
+      "en": "Production lots"
+    },
+    "domain": "operations",
+    "fields": {
+      "quantity": {
+        "label": {
+          "tr": "Üretim miktarı",
+          "en": "Production quantity"
+        },
+        "type": "number"
+      },
+      "unit": {
+        "label": {
+          "tr": "Birim",
+          "en": "Unit"
+        },
+        "type": "text"
+      },
+      "produced_on": {
+        "label": {
+          "tr": "Üretim tarihi",
+          "en": "Production date"
+        },
+        "type": "date"
+      },
+      "facility": {
+        "label": {
+          "tr": "Tesis",
+          "en": "Facility"
+        },
+        "type": "text"
+      },
+      "origin": {
+        "label": {
+          "tr": "Menşe iddiası",
+          "en": "Origin claim"
+        },
+        "type": "text"
+      },
+      "origin_evidence": {
+        "label": {
+          "tr": "Menşe dayanağı / kapsam",
+          "en": "Origin evidence / scope"
+        },
+        "type": "textarea"
+      }
+    },
+    "relations": {
+      "variant": [
+        "variant"
+      ],
+      "manufacturer": [
+        "manufacturer"
+      ],
+      "material": [
+        "material"
+      ],
+      "order": [
+        "order"
+      ],
+      "rework_of": [
+        "lot"
+      ]
+    },
+    "states": [
+      "draft",
+      "production",
+      "completed",
+      "released",
+      "held"
+    ]
+  },
+  "qc": {
+    "label": {
+      "tr": "Kalite kayıtları",
+      "en": "QC records"
+    },
+    "domain": "operations",
+    "fields": {
+      "method": {
+        "label": {
+          "tr": "Test yöntemi",
+          "en": "Test method"
+        },
+        "type": "text"
+      },
+      "result": {
+        "label": {
+          "tr": "Sonuç",
+          "en": "Result"
+        },
+        "type": "select",
+        "options": [
+          "pending",
+          "pass",
+          "fail"
+        ]
+      },
+      "tested_on": {
+        "label": {
+          "tr": "Kontrol tarihi",
+          "en": "Test date"
+        },
+        "type": "date"
+      },
+      "inspector": {
+        "label": {
+          "tr": "Kontrol eden",
+          "en": "Inspector"
+        },
+        "type": "text"
+      },
+      "evidence": {
+        "label": {
+          "tr": "Kanıt / fotoğraf / rapor",
+          "en": "Evidence / photos / report"
+        },
+        "type": "textarea"
+      },
+      "nonconformity": {
+        "label": {
+          "tr": "Uygunsuzluk",
+          "en": "Nonconformity"
+        },
+        "type": "textarea"
+      },
+      "release_reason": {
+        "label": {
+          "tr": "Serbest bırakma gerekçesi",
+          "en": "Release decision reason"
+        },
+        "type": "textarea"
+      }
+    },
+    "relations": {
+      "lot": [
+        "lot"
+      ],
+      "sample": [
+        "sample"
+      ]
+    },
+    "states": [
+      "draft",
+      "review",
+      "released",
+      "held"
+    ]
+  },
+  "shipment": {
+    "label": {
+      "tr": "Sevkiyatlar",
+      "en": "Shipments"
+    },
+    "domain": "operations",
+    "fields": {
+      "quantity": {
+        "label": {
+          "tr": "Sevk miktarı",
+          "en": "Shipped quantity"
+        },
+        "type": "number"
+      },
+      "unit": {
+        "label": {
+          "tr": "Birim",
+          "en": "Unit"
+        },
+        "type": "text"
+      },
+      "carrier": {
+        "label": {
+          "tr": "Taşıyıcı",
+          "en": "Carrier"
+        },
+        "type": "text"
+      },
+      "tracking": {
+        "label": {
+          "tr": "Takip no / URL",
+          "en": "Tracking reference"
+        },
+        "type": "text"
+      },
+      "shipped_at": {
+        "label": {
+          "tr": "Çıkış tarihi",
+          "en": "Dispatched at"
+        },
+        "type": "datetime"
+      },
+      "expected_on": {
+        "label": {
+          "tr": "Beklenen teslim",
+          "en": "Expected delivery"
+        },
+        "type": "date"
+      },
+      "delivered_at": {
+        "label": {
+          "tr": "Doğrulanmış teslim",
+          "en": "Verified delivery"
+        },
+        "type": "datetime"
+      },
+      "delivery_evidence": {
+        "label": {
+          "tr": "Teslim kanıtı",
+          "en": "Delivery evidence"
+        },
+        "type": "text"
+      },
+      "communication_on": {
+        "label": {
+          "tr": "Sonraki bilgilendirme",
+          "en": "Next communication"
+        },
+        "type": "date"
+      },
+      "direction": {
+        "label": {
+          "tr": "Sevk yönü",
+          "en": "Direction"
+        },
+        "type": "select",
+        "options": [
+          "outbound",
+          "return"
+        ]
+      }
+    },
+    "relations": {
+      "order": [
+        "order"
+      ],
+      "lot": [
+        "lot"
+      ],
+      "return_of": [
+        "shipment"
+      ]
+    },
+    "states": [
+      "draft",
+      "dispatched",
+      "in_transit",
+      "delivered",
+      "returned"
+    ]
+  },
+  "service": {
+    "label": {
+      "tr": "Hizmet vakaları",
+      "en": "Service cases"
+    },
+    "domain": "market",
+    "fields": {
+      "issue": {
+        "label": {
+          "tr": "Sorun",
+          "en": "Issue"
+        },
+        "type": "textarea"
+      },
+      "severity": {
+        "label": {
+          "tr": "Önem",
+          "en": "Severity"
+        },
+        "type": "select",
+        "options": [
+          "attention",
+          "at_risk",
+          "critical"
+        ]
+      },
+      "impact": {
+        "label": {
+          "tr": "Müşteri etkisi",
+          "en": "Customer impact"
+        },
+        "type": "textarea"
+      },
+      "root_cause": {
+        "label": {
+          "tr": "Kök neden",
+          "en": "Root cause"
+        },
+        "type": "textarea"
+      },
+      "reason_code": {
+        "label": {
+          "tr": "Efor nedeni",
+          "en": "Effort reason"
+        },
+        "type": "select",
+        "options": [
+          "repeated_information",
+          "status_request",
+          "channel_change",
+          "niateks_correction",
+          "customer_scope_change",
+          "quality"
+        ]
+      },
+      "next_step": {
+        "label": {
+          "tr": "Sonraki çözüm adımı",
+          "en": "Next resolution step"
+        },
+        "type": "text"
+      },
+      "communication_on": {
+        "label": {
+          "tr": "Sonraki iletişim",
+          "en": "Next communication"
+        },
+        "type": "date"
+      },
+      "opened_at": {
+        "label": {
+          "tr": "Başlangıç olayı",
+          "en": "Opened at"
+        },
+        "type": "datetime"
+      },
+      "resolved_at": {
+        "label": {
+          "tr": "Çözüm olayı",
+          "en": "Resolved at"
+        },
+        "type": "datetime"
+      },
+      "resolution": {
+        "label": {
+          "tr": "Çözüm kanıtı",
+          "en": "Resolution evidence"
+        },
+        "type": "textarea"
+      },
+      "cost": {
+        "label": {
+          "tr": "Telafi maliyeti",
+          "en": "Remediation cost"
+        },
+        "type": "money",
+        "sensitive": "cost"
+      },
+      "response_at": {
+        "label": {
+          "tr": "İlk yanıt zamanı",
+          "en": "First response at"
+        },
+        "type": "datetime"
+      },
+      "effort_count": {
+        "label": {
+          "tr": "Müşterinin ek temas sayısı",
+          "en": "Additional customer contacts"
+        },
+        "type": "number"
+      }
+    },
+    "relations": {
+      "order": [
+        "order"
+      ],
+      "shipment": [
+        "shipment"
+      ],
+      "lot": [
+        "lot"
+      ]
+    },
+    "states": [
+      "draft",
+      "open",
+      "investigating",
+      "waiting",
+      "resolved"
+    ]
+  },
+  "insight": {
+    "label": {
+      "tr": "Araştırma bulguları",
+      "en": "Research insights"
+    },
+    "domain": "market",
+    "fields": {
+      "question": {
+        "label": {
+          "tr": "Karar sorusu",
+          "en": "Decision question"
+        },
+        "type": "text"
+      },
+      "observation": {
+        "label": {
+          "tr": "Gözlem",
+          "en": "Observation"
+        },
+        "type": "textarea"
+      },
+      "level": {
+        "label": {
+          "tr": "İhtiyaç düzeyi",
+          "en": "Need level"
+        },
+        "type": "select",
+        "options": [
+          "business",
+          "decision_maker",
+          "end_user"
+        ]
+      },
+      "context": {
+        "label": {
+          "tr": "Kullanım bağlamı",
+          "en": "Use context"
+        },
+        "type": "text"
+      },
+      "market": {
+        "label": {
+          "tr": "Pazar / segment",
+          "en": "Market / segment"
+        },
+        "type": "text"
+      },
+      "method": {
+        "label": {
+          "tr": "Yöntem",
+          "en": "Method"
+        },
+        "type": "text"
+      },
+      "sample": {
+        "label": {
+          "tr": "Örneklem ve sınır",
+          "en": "Sample and limitations"
+        },
+        "type": "text"
+      },
+      "evidence": {
+        "label": {
+          "tr": "Kaynak kanıtı",
+          "en": "Source evidence"
+        },
+        "type": "textarea"
+      },
+      "observed_on": {
+        "label": {
+          "tr": "Gözlem tarihi",
+          "en": "Observed on"
+        },
+        "type": "date"
+      },
+      "contrary": {
+        "label": {
+          "tr": "Karşı kanıt",
+          "en": "Contrary evidence"
+        },
+        "type": "textarea"
+      },
+      "confidence": {
+        "label": {
+          "tr": "Güven gerekçesi",
+          "en": "Confidence explanation"
+        },
+        "type": "textarea"
+      }
+    },
+    "relations": {
+      "product": [
+        "product"
+      ],
+      "experiment": [
+        "experiment"
+      ]
+    },
+    "states": [
+      "draft",
+      "hypothesis",
+      "validated",
+      "contradicted",
+      "insufficient"
+    ]
+  },
+  "assumption": {
+    "label": {
+      "tr": "Stratejik varsayımlar",
+      "en": "Strategic assumptions"
+    },
+    "domain": "commercial",
+    "fields": {
+      "assumption": {
+        "label": {
+          "tr": "Varsayım",
+          "en": "Assumption"
+        },
+        "type": "textarea"
+      },
+      "basis": {
+        "label": {
+          "tr": "Dayanak",
+          "en": "Basis"
+        },
+        "type": "textarea"
+      },
+      "alternative": {
+        "label": {
+          "tr": "Alternatif açıklama",
+          "en": "Alternative explanation"
+        },
+        "type": "textarea"
+      },
+      "falsifier": {
+        "label": {
+          "tr": "Yanlışlanma sinyali",
+          "en": "Falsification signal"
+        },
+        "type": "textarea"
+      },
+      "review_on": {
+        "label": {
+          "tr": "Review tarihi",
+          "en": "Review date"
+        },
+        "type": "date"
+      },
+      "decision": {
+        "label": {
+          "tr": "Bağlı karar",
+          "en": "Linked decision"
+        },
+        "type": "textarea"
+      }
+    },
+    "relations": {
+      "insight": [
+        "insight"
+      ],
+      "experiment": [
+        "experiment"
+      ],
+      "scenario": [
+        "scenario"
+      ]
+    },
+    "states": [
+      "draft",
+      "active",
+      "adapted",
+      "retired"
+    ]
+  },
+  "experiment": {
+    "label": {
+      "tr": "Deneyler",
+      "en": "Experiments"
+    },
+    "domain": "market",
+    "fields": {
+      "hypothesis": {
+        "label": {
+          "tr": "Hipotez",
+          "en": "Hypothesis"
+        },
+        "type": "textarea"
+      },
+      "segment": {
+        "label": {
+          "tr": "Segment / teklif yolu",
+          "en": "Segment / offer path"
+        },
+        "type": "text"
+      },
+      "cohort": {
+        "label": {
+          "tr": "Test hesap grubu",
+          "en": "Test cohort"
+        },
+        "type": "text"
+      },
+      "message": {
+        "label": {
+          "tr": "Test edilen öneri / mesaj",
+          "en": "Tested offer / message"
+        },
+        "type": "textarea"
+      },
+      "fixed_variables": {
+        "label": {
+          "tr": "Sabit değişkenler",
+          "en": "Fixed variables"
+        },
+        "type": "textarea"
+      },
+      "starts_on": {
+        "label": {
+          "tr": "Başlangıç",
+          "en": "Starts on"
+        },
+        "type": "date"
+      },
+      "ends_on": {
+        "label": {
+          "tr": "Bitiş",
+          "en": "Ends on"
+        },
+        "type": "date"
+      },
+      "success_criteria": {
+        "label": {
+          "tr": "Başarı / durdurma ölçütü",
+          "en": "Success / stop criterion"
+        },
+        "type": "textarea"
+      },
+      "budget": {
+        "label": {
+          "tr": "Bütçe",
+          "en": "Budget"
+        },
+        "type": "money",
+        "sensitive": "finance"
+      },
+      "result": {
+        "label": {
+          "tr": "Sonuç / örneklem / dönem",
+          "en": "Result / sample / period"
+        },
+        "type": "textarea"
+      },
+      "learning": {
+        "label": {
+          "tr": "Öğrenme",
+          "en": "Learning"
+        },
+        "type": "textarea"
+      },
+      "capacity_impact": {
+        "label": {
+          "tr": "Numune / üretim / QC / nakit etkisi",
+          "en": "Sample / production / QC / cash impact"
+        },
+        "type": "textarea"
+      },
+      "closure_plan": {
+        "label": {
+          "tr": "Mevcut sözler için kapanış planı",
+          "en": "Commitment closure plan"
+        },
+        "type": "textarea"
+      }
+    },
+    "relations": {
+      "assumption": [
+        "assumption"
+      ],
+      "insight": [
+        "insight"
+      ]
+    },
+    "states": [
+      "draft",
+      "running",
+      "review",
+      "scale",
+      "adapt",
+      "stop"
+    ]
+  },
+  "scenario": {
+    "label": {
+      "tr": "Senaryolar",
+      "en": "Scenarios"
+    },
+    "domain": "commercial",
+    "fields": {
+      "conditions": {
+        "label": {
+          "tr": "Olası koşullar",
+          "en": "Possible conditions"
+        },
+        "type": "textarea"
+      },
+      "signals": {
+        "label": {
+          "tr": "Erken sinyaller",
+          "en": "Early signals"
+        },
+        "type": "textarea"
+      },
+      "impact": {
+        "label": {
+          "tr": "Ürün / segment etkisi",
+          "en": "Product / segment impact"
+        },
+        "type": "textarea"
+      },
+      "preparation": {
+        "label": {
+          "tr": "Hazırlık seçenekleri",
+          "en": "Preparation options"
+        },
+        "type": "textarea"
+      }
+    },
+    "relations": {},
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "supplier": {
+    "label": {
+      "tr": "Tedarikçiler",
+      "en": "Suppliers"
+    },
+    "domain": "operations",
+    "fields": {
+      "legal_identity": {
+        "label": {
+          "tr": "Hukuki kimlik",
+          "en": "Legal identity"
+        },
+        "type": "text"
+      },
+      "role": {
+        "label": {
+          "tr": "Tedarik kapsamı",
+          "en": "Supply scope"
+        },
+        "type": "text"
+      },
+      "facility": {
+        "label": {
+          "tr": "Tesis / iletişim",
+          "en": "Facility / contact"
+        },
+        "type": "text"
+      }
+    },
+    "relations": {},
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "manufacturer": {
+    "label": {
+      "tr": "Üreticiler",
+      "en": "Manufacturers"
+    },
+    "domain": "operations",
+    "fields": {
+      "legal_identity": {
+        "label": {
+          "tr": "Üretici kimliği",
+          "en": "Manufacturer identity"
+        },
+        "type": "text"
+      },
+      "facility": {
+        "label": {
+          "tr": "Tesis",
+          "en": "Facility"
+        },
+        "type": "text"
+      },
+      "location": {
+        "label": {
+          "tr": "Lokasyon",
+          "en": "Location"
+        },
+        "type": "text"
+      },
+      "scope": {
+        "label": {
+          "tr": "Üretim kapsamı",
+          "en": "Production scope"
+        },
+        "type": "text"
+      }
+    },
+    "relations": {},
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "material": {
+    "label": {
+      "tr": "Malzeme partileri",
+      "en": "Material batches"
+    },
+    "domain": "operations",
+    "fields": {
+      "batch_code": {
+        "label": {
+          "tr": "Parti kimliği",
+          "en": "Batch code"
+        },
+        "type": "text"
+      },
+      "composition": {
+        "label": {
+          "tr": "Bileşim",
+          "en": "Composition"
+        },
+        "type": "text"
+      },
+      "specification": {
+        "label": {
+          "tr": "Teknik şartname ve sürüm",
+          "en": "Specification and version"
+        },
+        "type": "textarea"
+      },
+      "supplier_code": {
+        "label": {
+          "tr": "Tedarikçi kodu",
+          "en": "Supplier code"
+        },
+        "type": "text"
+      },
+      "quantity": {
+        "label": {
+          "tr": "Miktar",
+          "en": "Quantity"
+        },
+        "type": "number"
+      },
+      "unit": {
+        "label": {
+          "tr": "Birim",
+          "en": "Unit"
+        },
+        "type": "text"
+      }
+    },
+    "relations": {
+      "supplier": [
+        "supplier"
+      ]
+    },
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "certification": {
+    "label": {
+      "tr": "Sertifikalar",
+      "en": "Certifications"
+    },
+    "domain": "operations",
+    "fields": {
+      "issuer": {
+        "label": {
+          "tr": "Veren kuruluş",
+          "en": "Issuer"
+        },
+        "type": "text"
+      },
+      "scope": {
+        "label": {
+          "tr": "Kapsam",
+          "en": "Scope"
+        },
+        "type": "textarea"
+      },
+      "valid_until": {
+        "label": {
+          "tr": "Geçerlilik sonu",
+          "en": "Expires on"
+        },
+        "type": "date"
+      },
+      "evidence": {
+        "label": {
+          "tr": "Belge kanıtı",
+          "en": "Document evidence"
+        },
+        "type": "textarea"
+      }
+    },
+    "relations": {
+      "product": [
+        "product"
+      ],
+      "material": [
+        "material"
+      ],
+      "manufacturer": [
+        "manufacturer"
+      ]
+    },
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "task": {
+    "label": {
+      "tr": "İş takibi",
+      "en": "Tasks"
+    },
+    "domain": "market",
+    "fields": {
+      "next_step": {
+        "label": {
+          "tr": "Sonraki adım",
+          "en": "Next step"
+        },
+        "type": "text"
+      },
+      "reason": {
+        "label": {
+          "tr": "Öncelik gerekçesi",
+          "en": "Priority reason"
+        },
+        "type": "text"
+      },
+      "blocker": {
+        "label": {
+          "tr": "Engel / destek",
+          "en": "Blocker / support"
+        },
+        "type": "text"
+      },
+      "waiting_for": {
+        "label": {
+          "tr": "Kimden bekleniyor",
+          "en": "Waiting for"
+        },
+        "type": "text"
+      },
+      "purpose": {
+        "label": {
+          "tr": "İletişim amacı",
+          "en": "Communication purpose"
+        },
+        "type": "select",
+        "options": [
+          "internal",
+          "service",
+          "marketing"
+        ]
+      },
+      "result": {
+        "label": {
+          "tr": "Tamamlanan sonuç",
+          "en": "Completed outcome"
+        },
+        "type": "textarea"
+      },
+      "recipient": {
+        "label": {
+          "tr": "Alıcı kanıtı",
+          "en": "Recipient reference"
+        },
+        "type": "text"
+      }
+    },
+    "relations": {
+      "context": [
+        "account",
+        "contact",
+        "opportunity",
+        "product",
+        "variant",
+        "sku",
+        "offering",
+        "sample",
+        "quote",
+        "order",
+        "lot",
+        "qc",
+        "shipment",
+        "service",
+        "insight",
+        "assumption",
+        "experiment",
+        "scenario",
+        "supplier",
+        "manufacturer",
+        "material",
+        "certification",
+        "task",
+        "right",
+        "dependency",
+        "capability",
+        "cost"
+      ]
+    },
+    "states": [
+      "draft",
+      "now",
+      "next",
+      "waiting",
+      "done",
+      "cancelled"
+    ]
+  },
+  "right": {
+    "label": {
+      "tr": "AI karar hakları",
+      "en": "AI decision rights"
+    },
+    "domain": "system",
+    "fields": {
+      "decision_class": {
+        "label": {
+          "tr": "Karar sınıfı",
+          "en": "Decision class"
+        },
+        "type": "text"
+      },
+      "human_owner": {
+        "label": {
+          "tr": "İnsan sorumlusu",
+          "en": "Human owner"
+        },
+        "type": "text"
+      },
+      "level": {
+        "label": {
+          "tr": "AI seviyesi",
+          "en": "AI level"
+        },
+        "type": "select",
+        "options": [
+          "observe",
+          "recommend",
+          "prepare",
+          "execute"
+        ]
+      },
+      "scope": {
+        "label": {
+          "tr": "İzinli işlem / veri / etki sınırı",
+          "en": "Allowed action / data / impact"
+        },
+        "type": "textarea"
+      },
+      "valid_until": {
+        "label": {
+          "tr": "Geçerlilik sonu",
+          "en": "Valid until"
+        },
+        "type": "date"
+      },
+      "freshness": {
+        "label": {
+          "tr": "Veri tazeliği koşulu",
+          "en": "Freshness condition"
+        },
+        "type": "text"
+      },
+      "stop_method": {
+        "label": {
+          "tr": "Durdurma / insan devri",
+          "en": "Stop / human handoff"
+        },
+        "type": "text"
+      },
+      "rollback": {
+        "label": {
+          "tr": "Geri alma",
+          "en": "Rollback"
+        },
+        "type": "text"
+      },
+      "domain": {
+        "label": {
+          "tr": "İlgili alan",
+          "en": "Decision domain"
+        },
+        "type": "select",
+        "options": [
+          "market",
+          "operations",
+          "commercial",
+          "system"
+        ]
+      }
+    },
+    "relations": {},
+    "states": [
+      "draft",
+      "active",
+      "revoked",
+      "stopped"
+    ]
+  },
+  "dependency": {
+    "label": {
+      "tr": "Devamlılık planları",
+      "en": "Continuity plans"
+    },
+    "domain": "system",
+    "fields": {
+      "service": {
+        "label": {
+          "tr": "Kritik hizmet / sağlayıcı",
+          "en": "Critical service / provider"
+        },
+        "type": "text"
+      },
+      "impact": {
+        "label": {
+          "tr": "İş etkisi",
+          "en": "Business impact"
+        },
+        "type": "textarea"
+      },
+      "backup_owner": {
+        "label": {
+          "tr": "Yedek sorumlu",
+          "en": "Deputy owner"
+        },
+        "type": "text"
+      },
+      "alternative": {
+        "label": {
+          "tr": "Alternatif / manuel yöntem",
+          "en": "Alternative / manual process"
+        },
+        "type": "textarea"
+      },
+      "export_method": {
+        "label": {
+          "tr": "Dışa aktarım yöntemi",
+          "en": "Export method"
+        },
+        "type": "text"
+      },
+      "rpo": {
+        "label": {
+          "tr": "Kabul edilen veri kaybı",
+          "en": "Accepted data loss"
+        },
+        "type": "text"
+      },
+      "rto": {
+        "label": {
+          "tr": "Toparlanma hedefi",
+          "en": "Recovery target"
+        },
+        "type": "text"
+      },
+      "tested_on": {
+        "label": {
+          "tr": "Son tatbikat",
+          "en": "Last rehearsal"
+        },
+        "type": "date"
+      },
+      "result": {
+        "label": {
+          "tr": "Tatbikat / geri yükleme sonucu",
+          "en": "Rehearsal / restore result"
+        },
+        "type": "textarea"
+      },
+      "next_step": {
+        "label": {
+          "tr": "Açık eksik / sonraki adım",
+          "en": "Open gap / next step"
+        },
+        "type": "text"
+      },
+      "dependency_kind": {
+        "label": {
+          "tr": "Bağımlılık türü",
+          "en": "Dependency kind"
+        },
+        "type": "select",
+        "options": [
+          "cost",
+          "stock",
+          "mail",
+          "ai",
+          "hosting",
+          "supplier"
+        ]
+      }
+    },
+    "relations": {},
+    "states": [
+      "draft",
+      "active",
+      "degraded",
+      "review"
+    ]
+  },
+  "capability": {
+    "label": {
+      "tr": "Yetkinlik planları",
+      "en": "Capability plans"
+    },
+    "domain": "market",
+    "fields": {
+      "goal": {
+        "label": {
+          "tr": "Öğrenme hedefi",
+          "en": "Learning goal"
+        },
+        "type": "textarea"
+      },
+      "judgement": {
+        "label": {
+          "tr": "Korunacak muhakeme",
+          "en": "Judgement to preserve"
+        },
+        "type": "textarea"
+      },
+      "practice": {
+        "label": {
+          "tr": "Uygulama fırsatı",
+          "en": "Practice opportunity"
+        },
+        "type": "textarea"
+      },
+      "support": {
+        "label": {
+          "tr": "Destek",
+          "en": "Support"
+        },
+        "type": "textarea"
+      },
+      "example": {
+        "label": {
+          "tr": "Örnek uygulama / geri bildirim",
+          "en": "Practice example / feedback"
+        },
+        "type": "textarea"
+      },
+      "review_on": {
+        "label": {
+          "tr": "Gözden geçirme",
+          "en": "Review on"
+        },
+        "type": "date"
+      }
+    },
+    "relations": {},
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  },
+  "cost": {
+    "label": {
+      "tr": "İlişki giderleri",
+      "en": "Relationship costs"
+    },
+    "domain": "commercial",
+    "fields": {
+      "amount": {
+        "label": {
+          "tr": "Tutar",
+          "en": "Amount"
+        },
+        "type": "money",
+        "sensitive": "finance"
+      },
+      "currency": {
+        "label": {
+          "tr": "Para birimi",
+          "en": "Currency"
+        },
+        "type": "select",
+        "options": [
+          "GBP",
+          "USD",
+          "TRY",
+          "EUR"
+        ]
+      },
+      "category": {
+        "label": {
+          "tr": "Gider türü",
+          "en": "Cost category"
+        },
+        "type": "select",
+        "options": [
+          "service",
+          "financing",
+          "acquisition"
+        ]
+      },
+      "incurred_on": {
+        "label": {
+          "tr": "Gider tarihi",
+          "en": "Incurred on"
+        },
+        "type": "date"
+      },
+      "method": {
+        "label": {
+          "tr": "Yöntem / dağıtım anahtarı",
+          "en": "Method / allocation basis"
+        },
+        "type": "textarea",
+        "sensitive": "finance"
+      },
+      "included_in_order": {
+        "label": {
+          "tr": "Sipariş katkısında zaten düşüldü",
+          "en": "Already included in order contribution"
+        },
+        "type": "bool"
+      },
+      "external_reference": {
+        "label": {
+          "tr": "Tekil gider kaynağı",
+          "en": "Unique expense source"
+        },
+        "type": "text"
+      }
+    },
+    "relations": {
+      "order": [
+        "order"
+      ],
+      "sample": [
+        "sample"
+      ],
+      "service": [
+        "service"
+      ],
+      "experiment": [
+        "experiment"
+      ]
+    },
+    "states": [
+      "draft",
+      "active",
+      "closed"
+    ]
+  }
+}
