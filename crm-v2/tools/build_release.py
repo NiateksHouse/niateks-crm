@@ -8,7 +8,7 @@ import datetime
 root = Path(__file__).resolve().parents[1]
 out = Path('/tmp/koza-build')
 out.mkdir(parents=True, exist_ok=True)
-archive = out / 'koza-crm-v2.1.1-test.1-runtime.zip'
+archive = out / 'koza-crm-v2.1.2-test.1-runtime.zip'
 files = []
 for name in ['app', 'config', 'database', 'public', 'vendor']:
     files.extend(f for f in (root / name).rglob('*') if f.is_file())

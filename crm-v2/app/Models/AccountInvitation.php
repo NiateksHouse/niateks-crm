@@ -12,6 +12,6 @@ class AccountInvitation extends Model
 
     protected function casts(): array
     {
-        return ['can_view_all_finance' => 'boolean', 'expires_at' => 'datetime', 'consumed_at' => 'datetime', 'revoked_at' => 'datetime'];
+        return ['domains' => 'array', 'can_view_all_finance' => 'boolean', 'expires_at' => 'datetime', 'consumed_at' => 'datetime', 'revoked_at' => 'datetime'];
     }
 }
