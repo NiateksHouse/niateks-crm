@@ -38,6 +38,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::get('/home', [KozaController::class, 'home'])->name('workspace.home');
     Route::prefix('koza/api')->middleware('throttle:120,1')->group(function () {
+        Route::get('/dashboard', [KozaController::class, 'dashboard']);
         Route::get('/bootstrap', [KozaController::class, 'bootstrap']);
         Route::get('/records', [KozaController::class, 'index']);
         Route::post('/records', [KozaController::class, 'store']);
