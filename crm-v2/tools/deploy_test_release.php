@@ -14,7 +14,7 @@ const APP_ROOT = '/home/niatekscom/koza-crm-test-alpha20';
 const EXPECTED_URL = 'https://test.koza.niateks.com';
 const EXPECTED_DB = 'niatekscom_koza_test';
 $work = __DIR__;
-$release = $work.'/koza-crm-v2.1.1-test.1-runtime.zip';
+$release = $work.'/koza-crm-v2.1.2-test.1-runtime.zip';
 $checksumFile = $work.'/SHA256SUMS.txt';
 $report = $work.'/deployment-report.json';
 $lock = fopen($work.'/deployment.lock', 'c');
@@ -24,7 +24,7 @@ if (! $lock || ! flock($lock, LOCK_EX | LOCK_NB)) {
 if (is_file($work.'/complete.json')) {
     exit;
 }
-$state = ['release' => '2.1.1-test.1', 'started_at' => gmdate('c'), 'status' => 'preflight'];
+$state = ['release' => '2.1.2-test.1', 'started_at' => gmdate('c'), 'status' => 'preflight'];
 function recordReport(): void
 {
     global $report,$state;

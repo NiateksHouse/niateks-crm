@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\AccountInvitation;
 use App\Models\User;
+use App\Services\KozaAccess;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class InvitationTest extends TestCase
@@ -130,5 +132,71 @@ class InvitationTest extends TestCase
         $this->artisan('koza:bootstrap-invitations')->assertFailed();
         $this->assertDatabaseCount('account_invitations', 0);
         $this->assertFalse(File::exists(storage_path('app/private/bootstrap-invitations.json')));
+    }
+
+    public function test_team_invitation_applies_only_preapproved_domains_on_activation(): void
+    {
+        $issuer = $this->user('owner', 'admin');
+        $issuer->forceFill(['can_view_all_finance' => true])->save();
+        $this->artisan('koza:invite-member', ['username' => 'newmember', 'email' => 'member@example.test', '--name' => 'Test member', '--domain' => ['market', 'operations'], '--issuer' => $issuer->email])->assertSuccessful();
+        $path = storage_path('app/private/team-invitations/newmember.json');
+        $private = json_decode(file_get_contents($path), true);
+        $this->assertSame(0600, fileperms($path) & 0777);
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('koza_access', 0);
+        $this->post('/activate', $this->submission($private['code']) + ['domains' => ['commercial', 'system'], 'read_cost' => true])->assertRedirect('/login');
+        $member = User::where('username', 'newmember')->firstOrFail();
+        $access = app(KozaAccess::class);
+        $this->assertSame(['market', 'operations'], $access->domains($member));
+        $this->assertFalse($access->money($member));
+        $this->assertFalse($access->money($member, 'cost'));
+        $this->assertSame('representative', $member->role);
+        $this->assertFalse($member->can_view_all_finance);
+        $this->post('/activate', $this->submission($private['code']))->assertSessionHasErrors('invitation_code');
+        $this->assertDatabaseCount('users', 2);
+    }
+
+    public function test_team_invitation_never_replaces_identity_or_issues_commercial_rights(): void
+    {
+        $issuer = $this->user('owner', 'admin');
+        $issuer->forceFill(['can_view_all_finance' => true])->save();
+        $args = ['username' => 'newmember', 'email' => 'member@example.test', '--name' => 'Test member', '--domain' => ['market'], '--issuer' => $issuer->email];
+        $this->artisan('koza:invite-member', array_replace($args, ['--domain' => ['commercial']]))->assertFailed();
+        $this->artisan('koza:invite-member', array_replace($args, ['username' => 'owner']))->assertFailed();
+        $this->assertDatabaseCount('account_invitations', 0);
+        $this->artisan('koza:invite-member', $args)->assertSuccessful();
+        $path = storage_path('app/private/team-invitations/newmember.json');
+        $original = file_get_contents($path);
+        $this->artisan('koza:invite-member', $args)->assertFailed();
+        $this->assertSame($original, file_get_contents($path));
+        $this->assertDatabaseCount('account_invitations', 1);
+    }
+
+    public function test_team_activation_fails_when_issuer_authority_is_revoked(): void
+    {
+        $issuer = $this->user('owner', 'admin');
+        $issuer->forceFill(['can_view_all_finance' => true])->save();
+        $this->artisan('koza:invite-member', ['username' => 'newmember', 'email' => 'member@example.test', '--name' => 'Test member', '--domain' => ['market'], '--issuer' => $issuer->email])->assertSuccessful();
+        $private = json_decode(file_get_contents(storage_path('app/private/team-invitations/newmember.json')), true);
+        $issuer->forceFill(['active' => false])->save();
+        $this->post('/activate', $this->submission($private['code']))->assertSessionHasErrors('invitation_code');
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('koza_access', 0);
+        $this->assertNull(AccountInvitation::firstOrFail()->consumed_at);
+    }
+
+    public function test_invitation_domain_rollback_is_blocked_on_staging(): void
+    {
+        $migration = require database_path('migrations/2026_10_02_000008_add_invitation_domains.php');
+        $this->app->instance('env', 'staging');
+        try {
+            $migration->down();
+            $this->fail('Persistent rollback must be refused.');
+        } catch (\RuntimeException $error) {
+            $this->assertStringContainsString('explicitly designated', $error->getMessage());
+        } finally {
+            $this->app->instance('env', 'testing');
+        }
+        $this->assertTrue(Schema::hasColumn('account_invitations', 'domains'));
     }
 }

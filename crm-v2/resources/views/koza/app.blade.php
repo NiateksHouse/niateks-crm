@@ -15,7 +15,7 @@
 <aside class="sidebar" id="sidebar" aria-label="KOZA">
 <div class="brand" role="img" aria-label="KOZA · Niateks House"></div>
 <nav class="nav" id="navigation"></nav>
-<div class="side-foot"><div class="house-brand" role="img" aria-label="Niateks House — Home textiles with a soul"></div><span>KOZA · 2.1.1-test.1</span><br><span data-i18n="testEnvironment">Test ortamı</span><br><a href="/companies" data-i18n="existingWorkspace">Mevcut kayıt ekranları</a></div>
+<div class="side-foot"><div class="house-brand" role="img" aria-label="Niateks House — Home textiles with a soul"></div><span>KOZA · 2.1.2-test.1</span><br><span data-i18n="testEnvironment">Test ortamı</span><br><a href="/companies" data-i18n="existingWorkspace">Mevcut kayıt ekranları</a></div>
 </aside>
 <main class="main">
 <div class="topbar">
