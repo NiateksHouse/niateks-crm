@@ -31,7 +31,7 @@ class MatchingMigrationTest extends TestCase
             unset($row['website'], $row['tax_number']);
         }
         unset($row);
-        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => 2, '--force' => true]));
+        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => 3, '--force' => true]));
         foreach (['matching_events', 'matching_keys', 'self_learning_company_dictionary', 'matching_decisions', 'matching_settings', 'contacts'] as $table) {
             $this->assertFalse(Schema::hasTable($table));
         }

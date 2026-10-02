@@ -22,23 +22,23 @@ class WorkspaceTest extends TestCase
         $company = app(CompanyService::class)->save($owner, $this->companyData());
         $project = app(ProjectService::class)->save($owner, $company, ['name' => 'Restricted apron request']);
         $this->actingAs($owner)->post('/companies/'.$company->id.'/activities', ['kind' => 'note', 'summary' => 'Restricted customer notes', 'body' => 'Original conversation', 'occurred_at' => '2026-09-30T10:30', 'project_id' => $project->id])->assertRedirect();
-        $this->get('/home')->assertOk()->assertSee('Restricted apron request')->assertViewHas('projectCount', 1)->assertViewHas('activityCount', 1);
+        $this->getJson('/koza/api/bootstrap')->assertOk()->assertJsonPath('projects.0.name', 'Restricted apron request');
         $this->get('/activities')->assertOk()->assertSee('Restricted customer notes');
         $this->actingAs($this->user('other'));
-        $this->get('/home')->assertOk()->assertDontSee('Restricted apron request')->assertViewHas('projectCount', 0)->assertViewHas('activityCount', 0)->assertViewHas('companyCount', 1);
+        $this->getJson('/koza/api/bootstrap')->assertOk()->assertJsonCount(0, 'projects')->assertJsonCount(1, 'companies');
         $this->get('/activities')->assertOk()->assertDontSee('Restricted customer notes')->assertDontSee('Restricted apron request');
         $this->actingAs($this->user('admin', 'admin'))->get('/activities')->assertOk()->assertSee('Restricted customer notes');
         $company->delete();
         $this->get('/activities')->assertOk()->assertDontSee('Restricted customer notes');
-        $this->get('/home')->assertOk()->assertViewHas('projectCount', 0);
+        $this->getJson('/koza/api/bootstrap')->assertOk()->assertJsonCount(0, 'projects');
     }
 
-    public function test_approved_navigation_and_preparation_pages_are_explicit(): void
+    public function test_legacy_navigation_opens_the_implemented_workspace(): void
     {
         $this->actingAs($this->user());
-        $this->get('/home')->assertOk()->assertSee('Başlangıç')->assertSee('Sipariş &amp; üretim', false)->assertSee('workspace-alpha26.js')->assertSee('Çalışma müziği');
-        foreach (['products', 'tasks', 'samples', 'quotes', 'orders', 'finance'] as $module) {
-            $this->get('/workspace/'.$module)->assertOk()->assertSee('Henüz kayıt alınmıyor');
+        $this->get('/home')->assertOk()->assertSee('koza-v1.js')->assertSee('English · UK')->assertSee('Türkçe · TR');
+        foreach (['products' => 'products', 'tasks' => 'focus', 'samples' => 'samples', 'quotes' => 'quotes', 'orders' => 'orders', 'finance' => 'commercial'] as $module => $view) {
+            $this->get('/workspace/'.$module)->assertRedirect('/home#'.$view);
         }
         $this->get('/workspace/unknown')->assertNotFound();
         $this->post('/workspace/orders')->assertStatus(405);

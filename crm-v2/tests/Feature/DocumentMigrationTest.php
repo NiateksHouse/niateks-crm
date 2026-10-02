@@ -23,7 +23,7 @@ class DocumentMigrationTest extends TestCase
             $this->app->instance('env', 'testing');
         }
         $this->assertTrue(Schema::hasTable('documents'));
-        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]));
+        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => 2, '--force' => true]));
         foreach (['documents', 'document_categories', 'document_versions', 'document_events'] as $table) {
             $this->assertFalse(Schema::hasTable($table));
         }
