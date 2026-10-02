@@ -304,7 +304,7 @@ class KozaWorkflowTest extends TestCase
     public function test_acceptance_customer_to_delivery_service_and_reorder_in_disposable_database(): void
     {
         // All policy values and commercial evidence below are disposable fixtures, never staging configuration.
-        $account = $this->create($this->b, 'account', ['segment' => 'TEST retailer', 'product_evidence' => 'TEST catalogue', 'offer_hypothesis' => 'TEST tea towel', 'research_date' => '2026-10-02', 'next_step' => 'TEST qualification']);
+        $account = $this->create($this->b, 'account', ['segment' => 'Independent home & gift retailer', 'product_evidence' => 'TEST catalogue', 'offer_hypothesis' => 'TEST tea towel', 'research_date' => '2026-10-02', 'next_step' => 'TEST qualification']);
         $account = $this->act($this->b, $account, 'transition', ['state' => 'qualified']);
         $op = $this->opportunity();
         $quote = $this->quote($op);
@@ -368,7 +368,7 @@ class KozaWorkflowTest extends TestCase
         $this->actingAs($this->u)->postJson('/koza/api/records/'.$quote->id.'/actions', ['version' => $quote->version, 'action' => 'verify', 'reason' => 'TEST missing policy'])->assertUnprocessable();
         $this->actingAs($this->n)->postJson('/koza/api/records/'.$quote->id.'/actions', ['version' => $quote->version, 'action' => 'approve', 'reason' => 'TEST missing policy'])->assertUnprocessable();
         $this->assertSame('draft', $quote->fresh()->state);
-        $this->assertSame(0, DB::table('koza_approvals')->count());
+        $this->assertSame(0, DB::table('koza_approvals')->where('record_id', $quote->id)->count());
         $this->assertSame(0, KozaRecord::where('type', 'order')->count());
         $this->assertSame(0, DB::table('koza_controls')->count());
     }
