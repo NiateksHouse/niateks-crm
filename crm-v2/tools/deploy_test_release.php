@@ -39,19 +39,22 @@ function check(bool $condition, string $message): void
 }
 function command(array $args): void
 {
-    global $work;
-    $process = proc_open($args, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, APP_ROOT);
-    check(is_resource($process), 'CLI process could not start');
-    fclose($pipes[0]);
-    $output = stream_get_contents($pipes[1]);
-    $error = stream_get_contents($pipes[2]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
-    $code = proc_close($process);
-    file_put_contents($work.'/commands.log', gmdate('c').' '.($args[2] ?? 'unknown').' exit='.$code."\n".$output.$error."\n", FILE_APPEND);
+    global $work, $app;
+    // Shared hosting disables proc_open. Run the same allowed Artisan commands
+    // through the already bootstrapped framework without changing PHP security settings.
+    $name = $args[2] ?? '';
+    check(in_array($name, ['down', 'up', 'optimize:clear', 'migrate', 'view:cache'], true), 'Unexpected deployment command');
+    $options = [];
+    foreach (array_slice($args, 3) as $arg) {
+        [$key, $value] = array_pad(explode('=', $arg, 2), 2, true);
+        $options[$key] = $value;
+    }
+    $kernel = $app->make(Kernel::class);
+    $code = $kernel->call($name, $options);
+    file_put_contents($work.'/commands.log', gmdate('c').' '.$name.' exit='.$code."\n".$kernel->output()."\n", FILE_APPEND);
     chmod($work.'/commands.log', 0600);
     if ($code !== 0) {
-        throw new RuntimeException('CLI command failed: '.($args[2] ?? 'unknown').'; see private log');
+        throw new RuntimeException('CLI command failed: '.$name.'; see private log');
     }
 }
 function zipDirectory(string $source, string $target, array $excluded = []): array
@@ -173,6 +176,7 @@ try {
     foreach (['vendor/autoload.php', 'public/index.php', 'public/.htaccess', 'resources/views/login.blade.php', 'public/koza-v1.js'] as $path) {
         check(is_file($payload.'/'.$path), 'Required runtime file missing: '.$path);
     }
+    check(hash_file('sha256', APP_ROOT.'/composer.lock') === hash_file('sha256', $payload.'/composer.lock'), 'In-process deployment requires unchanged framework dependencies');
     foreach (['resources/views/login.blade.php', 'resources/views/layout.blade.php', 'public/app-alpha22.css', 'public/password-toggle-alpha23.css', 'public/password-toggle-alpha23.js', 'public/assets/login-bg.jpg', 'public/assets/niateks-house-logo.png'] as $path) {
         check(hash_file('sha256', APP_ROOT.'/'.$path) === hash_file('sha256', $payload.'/'.$path), 'Login preservation failed: '.$path);
     }
