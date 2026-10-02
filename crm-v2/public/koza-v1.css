@@ -146,3 +146,4 @@ body{font-family:"Arial",ui-sans-serif,system-ui,sans-serif}.sidebar{padding:12p
 
 .notification-button{border:0;background:none;color:#4b5056;padding:8px;min-width:40px;min-height:44px;margin-left:auto}.notification-button svg{width:23px;height:23px}.role-switch{margin-left:0}.brand-values{white-space:nowrap}.pulse-row{min-height:54px}@media(max-width:780px){.notification-button{display:none}.role-switch{margin-left:auto}}
 @media(min-width:781px) and (max-width:1250px){.textile-thumb{display:block;width:48px;height:64px;right:14px;top:17px}.decision-content h2{max-width:calc(100% - 52px)}.decision-content p{padding-right:52px}.decision-card{min-height:210px}.decision-actions .text-button{font-size:11px}}
+.decision-content h2{max-width:calc(100% - 94px);overflow-wrap:anywhere}.decision-content p{padding-right:94px}@media(min-width:781px) and (max-width:1250px){.decision-content h2{max-width:calc(100% - 70px)}.decision-content p{padding-right:70px}}
