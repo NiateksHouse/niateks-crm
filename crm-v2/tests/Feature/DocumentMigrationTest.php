@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use Tests\TestCase;
@@ -23,7 +24,7 @@ class DocumentMigrationTest extends TestCase
             $this->app->instance('env', 'testing');
         }
         $this->assertTrue(Schema::hasTable('documents'));
-        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => 2, '--force' => true]));
+        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => DB::table('migrations')->where('migration', '>=', '2026_09_30_000006_create_documents')->count(), '--force' => true]));
         foreach (['documents', 'document_categories', 'document_versions', 'document_events'] as $table) {
             $this->assertFalse(Schema::hasTable($table));
         }

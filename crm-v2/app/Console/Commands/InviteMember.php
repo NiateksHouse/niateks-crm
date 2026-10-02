@@ -36,7 +36,7 @@ class InviteMember extends Command
         $handle = null;
         try {
             DB::transaction(function () use ($data, $issuer, $path, &$handle) {
-                User::whereKey($issuer->id)->lockForUpdate()->firstOrFail();
+                User::whereKey($issuer->id)->where('active', true)->where('can_view_all_finance', true)->lockForUpdate()->firstOrFail();
                 if (User::where('username', $data['username'])->orWhere('email', $data['email'])->exists()
                     || AccountInvitation::where('username', $data['username'])->orWhere('email', $data['email'])->exists()) {
                     throw new \RuntimeException('Existing identity');

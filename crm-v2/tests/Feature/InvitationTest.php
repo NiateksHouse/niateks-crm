@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\KozaAccess;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class InvitationTest extends TestCase
@@ -182,5 +183,20 @@ class InvitationTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseCount('koza_access', 0);
         $this->assertNull(AccountInvitation::firstOrFail()->consumed_at);
+    }
+
+    public function test_invitation_domain_rollback_is_blocked_on_staging(): void
+    {
+        $migration = require database_path('migrations/2026_10_02_000008_add_invitation_domains.php');
+        $this->app->instance('env', 'staging');
+        try {
+            $migration->down();
+            $this->fail('Persistent rollback must be refused.');
+        } catch (\RuntimeException $error) {
+            $this->assertStringContainsString('explicitly designated', $error->getMessage());
+        } finally {
+            $this->app->instance('env', 'testing');
+        }
+        $this->assertTrue(Schema::hasColumn('account_invitations', 'domains'));
     }
 }
