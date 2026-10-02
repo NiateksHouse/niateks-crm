@@ -21,7 +21,7 @@
 <div class="topbar">
 <button class="chip mobile-menu" id="menuToggle" aria-controls="sidebar" aria-expanded="false" aria-label="Menü / Menu">☰</button>
 <form class="search" id="searchForm"><span aria-hidden="true">⌕</span><input id="search" name="q" type="search" aria-label="Ara / Search" autocomplete="off"><span class="subtle key-hint">⌘ K</span></form>
-<div class="role-switch"><label class="sr-only" for="localeSelect">Dil / Language</label><select id="localeSelect"><option value="tr-TR">TR</option><option value="en">ENG</option></select><button class="profile-control" id="profileButton" aria-label="Profil / Profile"><span class="avatar">K</span><span class="profile-name"></span><span aria-hidden="true">⌄</span></button></div><div class="brand-values">MEANINGFUL<br>BEAUTIFUL<br>DURABLE</div>
+<button class="notification-button" id="notificationButton" aria-label="Öncelikler / Priorities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3ZM10 20h4M12 2v2"/></svg></button><div class="role-switch"><label class="sr-only" for="localeSelect">Dil / Language</label><select id="localeSelect"><option value="tr-TR">TR</option><option value="en">ENG</option></select><button class="profile-control" id="profileButton" aria-label="Profil / Profile"><span class="avatar">K</span><span class="profile-name"></span><span aria-hidden="true">⌄</span></button></div><div class="brand-values">MEANINGFUL<br>BEAUTIFUL<br>DURABLE</div>
 </div>
 <div class="page" id="page" tabindex="-1" aria-busy="true"><div class="card" role="status">KOZA yükleniyor / Loading KOZA…</div></div>
 </main>

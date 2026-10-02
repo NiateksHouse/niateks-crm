@@ -127,7 +127,7 @@
     const openLink=(view,text)=>`<button class="text-button" data-go="${view}">${esc(text)} <span aria-hidden="true">→</span></button>`;
     const meta=r=>`<div class="priority-meta">${esc(r.owner||t('unassigned'))}${r.due_at?' · '+esc(date(r.due_at)):''}</div>`;
     const configs=[['customer','accounts','service'],['decision','quotes','quotes'],['commercial','commercial','commercial']];
-    const cards=configs.map(([kind,ico,view])=>{const r=data.priorities[kind];return `<article class="decision-card ${kind}"><span class="decision-icon">${icon(ico)}</span><div class="decision-content"><div class="label">${esc(t('priority_'+kind))}</div><h2>${esc(r?.title||t('clear_'+kind))}</h2><p>${esc(r?t('reason_'+r.reason):t(kind==='commercial'&&!data.can_review_commercial?'noPermission':'empty_'+kind))}</p>${r?meta(r):''}<div class="decision-actions">${r?recordButton(r):openLink(view,t('open_'+kind))}</div></div><span class="textile-thumb textile-${kind}" aria-hidden="true"></span></article>`;}).join('');
+    const cards=configs.map(([kind,ico,view])=>{const r=data.priorities[kind];return `<article class="decision-card ${kind}"><span class="decision-icon">${icon(ico)}</span><div class="decision-content"><div class="label">${esc(t('priority_'+kind))}</div><h2>${esc(r?.title||t('clear_'+kind))}</h2><p>${esc(r?t('reason_'+r.reason):t(kind==='commercial'&&!data.can_review_commercial?'noPermission':'empty_'+kind))}</p>${r?meta(r):''}<div class="decision-actions">${r?`<button class="text-button" data-record="${r.id}">${esc(t('open_'+kind))}</button>`:openLink(view,t('open_'+kind))}</div></div><span class="textile-thumb textile-${kind}" aria-hidden="true"></span></article>`;}).join('');
     const healthRow=(ico,title,value,description,tone='neutral',view='myfocus')=>`<button class="pulse-row" data-go="${view}"><span class="pulse-icon ${tone}">${icon(ico)}</span><strong>${esc(t(title))}</strong><span class="pulse-state ${tone}">${esc(value)}</span><span class="pulse-description">${esc(description)}</span><span aria-hidden="true">›</span></button>`;
     const item=r=>`<div class="schedule-row"><span class="schedule-date">${esc(date(r.due_at))}</span><span class="schedule-icon">${icon(r.type==='task'?'myfocus':r.type==='order'?'orders':'documents')}</span><div>${recordButton(r)}<div class="row-meta">${esc(r.owner||t('unassigned'))}</div></div></div>`;
     const suggestion=data.suggestion;
@@ -283,6 +283,7 @@
   window.addEventListener('beforeunload',e=>{if(state.dirty){e.preventDefault();e.returnValue='';}});
   $('#menuToggle').onclick=()=>{const open=$('#sidebar').classList.toggle('mobile-open');$('#menuToggle').setAttribute('aria-expanded',String(open));};
   $('#profileButton').onclick=profile;
+  $('#notificationButton').onclick=()=>navigate('today');
   $('#localeSelect').onchange=async e=>{try{await api('/preferences',{method:'PUT',body:{locale:e.target.value,timezone:state.timezone}});state.locale=e.target.value;state.boot.locale=state.locale;shell();render();}catch(error){toast(errorMessage(error));}};
   $('#searchForm').onsubmit=e=>{e.preventDefault();state.q=$('#search').value;state.view='search';state.type=null;state.page=1;shell();render();};
   document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('#search').focus();}});
