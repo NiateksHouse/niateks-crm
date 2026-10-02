@@ -146,7 +146,7 @@ try {
     check(str_starts_with(realpath($work), APP_ROOT.'/updates/'), 'Deployment script must be in the private updates directory');
     check(is_file($release) && is_file($checksumFile), 'Reviewed runtime package or checksum is missing');
     $line = trim(file_get_contents($checksumFile));
-    check((bool) preg_match('/^([a-f0-9]{64})\s+koza-crm-v2\.1\.0-test\.1-runtime\.zip$/', $line, $match), 'Invalid checksum manifest');
+    check((bool) preg_match('/^([a-f0-9]{64})\s+'.preg_quote(basename($release), '/').'$/', $line, $match), 'Invalid checksum manifest');
     check(hash_equals($match[1], hash_file('sha256', $release)), 'Runtime package checksum mismatch');
     require APP_ROOT.'/vendor/autoload.php';
     $app = require APP_ROOT.'/bootstrap/app.php';
