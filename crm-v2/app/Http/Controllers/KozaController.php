@@ -13,6 +13,7 @@ use App\Services\CompanyService;
 use App\Services\DocumentFiles;
 use App\Services\DocumentService;
 use App\Services\KozaAccess;
+use App\Services\KozaDashboard;
 use App\Services\KozaEconomics;
 use App\Services\KozaWorkflow;
 use Brick\Math\BigDecimal as D;
@@ -43,12 +44,17 @@ class KozaController
         $counts = $this->access->visible($u)->selectRaw('type, count(*) as aggregate')->groupBy('type')->pluck('aggregate', 'type');
 
         return response()->json(['user' => ['id' => $u->id, 'name' => $u->name, 'domains' => $this->access->domains($u), 'read_cost' => $this->access->money($u, 'cost'), 'read_finance' => $this->access->money($u), 'business_owner' => (bool) $u->can_view_all_finance],
-            'locale' => $pref?->locale ?? 'tr-TR', 'timezone' => $pref?->timezone ?? 'Europe/Istanbul', 'catalog' => $catalog, 'counts' => $counts,
+            'locale' => str_starts_with($pref?->locale ?? 'tr', 'en') ? 'en' : 'tr-TR', 'timezone' => $pref?->timezone ?? 'Europe/Istanbul', 'catalog' => $catalog, 'counts' => $counts,
             'people' => User::where('active', true)->orderBy('name')->get(['id', 'name']),
             'companies' => Company::orderBy('name')->get(['id', 'name', 'country_code', 'city', 'email', 'phone', 'website', 'tax_number', 'roles', 'version']),
             'projects' => Project::visibleTo($u)->with('company:id,name')->latest('updated_at')->limit(20)->get(['id', 'name', 'company_id', 'updated_at']),
             'contacts' => Contact::visibleTo($u)->with('company:id,name')->orderBy('name')->limit(250)->get(['id', 'name', 'company_id', 'email', 'phone']),
-            'policy_configured' => $this->workflow->policy() !== null, 'release' => '2.1.0-test.1']);
+            'policy_configured' => $this->workflow->policy() !== null, 'release' => '2.1.1-test.1']);
+    }
+
+    public function dashboard(Request $r)
+    {
+        return response()->json(app(KozaDashboard::class)->forUser($r->user()));
     }
 
     public function index(Request $r)
@@ -133,7 +139,8 @@ class KozaController
 
     public function preferences(Request $r)
     {
-        $values = $r->validate(['locale' => ['required', Rule::in(['tr-TR', 'en-GB', 'en-US'])], 'timezone' => ['required', Rule::in(['Europe/Istanbul', 'Europe/London', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles'])]]);
+        $r->merge(['locale' => in_array($r->input('locale'), ['en-GB', 'en-US'], true) ? 'en' : $r->input('locale')]);
+        $values = $r->validate(['locale' => ['required', Rule::in(['tr-TR', 'en'])], 'timezone' => ['required', Rule::in(['Europe/Istanbul', 'Europe/London', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles'])]]);
         DB::table('koza_preferences')->updateOrInsert(['user_id' => $r->user()->id], $values + ['created_at' => now(), 'updated_at' => now()]);
 
         return response()->json($values);

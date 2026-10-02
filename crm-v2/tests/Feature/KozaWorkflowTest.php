@@ -81,10 +81,10 @@ class KozaWorkflowTest extends TestCase
     {
         $this->get('/home')->assertRedirect('/login');
         $this->getJson('/koza/api/bootstrap')->assertUnauthorized();
-        $this->actingAs($this->b)->get('/home')->assertOk()->assertSee('koza-v1.css')->assertSee('English · UK')->assertSee('English · USA');
+        $this->actingAs($this->b)->get('/home')->assertOk()->assertSee('koza-v1.css')->assertSee('ENG')->assertDontSee('English · UK')->assertDontSee('English · USA');
         $this->getJson('/koza/api/bootstrap')->assertOk()->assertJsonPath('user.domains.0', 'market');
         $this->putJson('/koza/api/preferences', ['locale' => 'en-US', 'timezone' => 'America/New_York'])->assertOk();
-        $this->getJson('/koza/api/bootstrap')->assertJsonPath('locale', 'en-US')->assertJsonPath('timezone', 'America/New_York');
+        $this->getJson('/koza/api/bootstrap')->assertJsonPath('locale', 'en')->assertJsonPath('timezone', 'America/New_York');
     }
 
     public function test_new_opportunity_is_draft_and_cannot_skip_real_need_gate(): void

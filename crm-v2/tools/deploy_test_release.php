@@ -14,7 +14,7 @@ const APP_ROOT = '/home/niatekscom/koza-crm-test-alpha20';
 const EXPECTED_URL = 'https://test.koza.niateks.com';
 const EXPECTED_DB = 'niatekscom_koza_test';
 $work = __DIR__;
-$release = $work.'/koza-crm-v2.1.0-test.1-runtime.zip';
+$release = $work.'/koza-crm-v2.1.1-test.1-runtime.zip';
 $checksumFile = $work.'/SHA256SUMS.txt';
 $report = $work.'/deployment-report.json';
 $lock = fopen($work.'/deployment.lock', 'c');
@@ -24,7 +24,7 @@ if (! $lock || ! flock($lock, LOCK_EX | LOCK_NB)) {
 if (is_file($work.'/complete.json')) {
     exit;
 }
-$state = ['release' => '2.1.0-test.1', 'started_at' => gmdate('c'), 'status' => 'preflight'];
+$state = ['release' => '2.1.1-test.1', 'started_at' => gmdate('c'), 'status' => 'preflight'];
 function recordReport(): void
 {
     global $report,$state;
@@ -146,7 +146,7 @@ try {
     check(str_starts_with(realpath($work), APP_ROOT.'/updates/'), 'Deployment script must be in the private updates directory');
     check(is_file($release) && is_file($checksumFile), 'Reviewed runtime package or checksum is missing');
     $line = trim(file_get_contents($checksumFile));
-    check((bool) preg_match('/^([a-f0-9]{64})\s+koza-crm-v2\.1\.0-test\.1-runtime\.zip$/', $line, $match), 'Invalid checksum manifest');
+    check((bool) preg_match('/^([a-f0-9]{64})\s+'.preg_quote(basename($release), '/').'$/', $line, $match), 'Invalid checksum manifest');
     check(hash_equals($match[1], hash_file('sha256', $release)), 'Runtime package checksum mismatch');
     require APP_ROOT.'/vendor/autoload.php';
     $app = require APP_ROOT.'/bootstrap/app.php';
