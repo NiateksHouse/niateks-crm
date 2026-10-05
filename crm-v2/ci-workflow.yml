@@ -1,0 +1,107 @@
+name: CRM v2 validation
+on:
+  push:
+    branches: ['codex/crm-v2-foundation', 'codex/koza-bilingual-workflows']
+    paths: ['crm-v2/**', '.github/workflows/crm-v2.yml']
+  pull_request:
+    paths: ['crm-v2/**', '.github/workflows/crm-v2.yml']
+permissions:
+  contents: read
+concurrency:
+  group: crm-v2-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  mysql-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: crm-v2
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: koza_ci
+          MYSQL_USER: koza_ci
+          MYSQL_PASSWORD: ci-disposable-only
+          MYSQL_ROOT_PASSWORD: ci-root-disposable-only
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_DATABASE: koza_ci
+      DB_DISPOSABLE_TEST_DATABASE: koza_ci
+      DB_USERNAME: koza_ci
+      DB_PASSWORD: ci-disposable-only
+      APP_ENV: testing
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, mbstring, intl, bcmath, dom, xml, zip
+          tools: composer:2
+          coverage: none
+      - run: composer validate --strict --no-check-publish
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer lint
+      - name: Formatting diagnostic
+        if: failure()
+        run: |
+          php vendor/bin/pint
+          git diff --color=never -- app tests
+      - run: composer audit
+      - name: PHP syntax
+        run: find app bootstrap config database routes tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Individual upgrade regression
+        run: php vendor/bin/phpunit --filter=test_upgrade_keeps_existing_users_and_companies
+      - name: MySQL feature tests
+        run: composer test
+      - name: Workspace JavaScript and login preservation
+        run: |
+          node --check public/koza-v1.js
+          node --check public/koza-language-v1.js
+          python3 tests/static_checks.py
+      - name: Blade compilation
+        run: php artisan view:cache
+      - name: Real HTTP session and CSRF checks
+        env:
+          APP_ENV: ci_http
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          APP_URL: http://127.0.0.1:8089
+          SESSION_SECURE_COOKIE: 'false'
+        run: |
+          php tests/http/seed.php
+          php artisan serve --host=127.0.0.1 --port=8089 > /tmp/koza-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python3 tests/http/check.py
+      - name: Prepare reviewed source bundle
+        run: |
+          php artisan view:clear
+          mkdir -p /tmp/koza-build
+          tar --exclude='./.phpunit.cache' --exclude='./vendor' --exclude='./.env' --exclude='./storage/logs/*' --exclude='./storage/app/*' --exclude='./storage/framework/testing/*' --exclude='./storage/framework/sessions/*' --exclude='./bootstrap/cache/*.php' --exclude='./storage/framework/views/*.php' -czf /tmp/koza-build/source-with-lock.tar.gz .
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: koza-workflows-reviewed-source
+          path: /tmp/koza-build/source-with-lock.tar.gz
+          retention-days: 7
+          if-no-files-found: error
+      - name: Install locked runtime dependencies
+        run: |
+          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+          composer check-platform-reqs --no-dev
+          composer audit --no-dev
+          python3 tools/build_release.py
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: koza-workflows-runtime
+          path: |
+            /tmp/koza-build/koza-crm-v2.1.2-test.1-runtime.zip
+            /tmp/koza-build/SHA256SUMS.txt
+          retention-days: 7
+          if-no-files-found: error
