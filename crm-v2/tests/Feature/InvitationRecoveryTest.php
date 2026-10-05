@@ -56,38 +56,39 @@ class InvitationRecoveryTest extends TestCase
         ];
     }
 
-    public function test_authorized_owner_can_reissue_without_expanding_access(): void
+    public function test_authorized_owner_can_replace_code_without_expanding_access(): void
     {
         $owner = $this->owner();
         $oldCode = str_repeat('a', 64);
-        $old = $this->invitation($oldCode);
+        $invitation = $this->invitation($oldCode);
 
         $this->artisan('koza:reissue-invitation', [
             'username' => 'bartutest',
             '--issuer' => $owner->email,
         ])->assertSuccessful();
 
-        $this->assertNotNull($old->fresh()->revoked_at);
-        $new = AccountInvitation::latest('id')->firstOrFail();
-        $this->assertSame('representative', $new->role);
-        $this->assertFalse($new->can_view_all_finance);
-        $this->assertSame(['market', 'operations'], $new->domains);
-        $this->assertTrue($new->expires_at->isFuture());
+        $fresh = $invitation->fresh();
+        $this->assertDatabaseCount('account_invitations', 1);
+        $this->assertSame('representative', $fresh->role);
+        $this->assertFalse($fresh->can_view_all_finance);
+        $this->assertSame(['market', 'operations'], $fresh->domains);
+        $this->assertTrue($fresh->expires_at->isFuture());
+        $this->assertNull($fresh->revoked_at);
 
         $files = File::files(storage_path('app/private/team-invitations'));
         $this->assertCount(1, $files);
         $this->assertSame(0600, fileperms($files[0]->getPathname()) & 0777);
         $private = json_decode(file_get_contents($files[0]->getPathname()), true);
         $this->assertSame(64, strlen($private['code']));
-        $this->assertSame(hash('sha256', $private['code']), $new->token_hash);
+        $this->assertSame(hash('sha256', $private['code']), $fresh->token_hash);
 
         $this->post('/activate', $this->submission($oldCode))->assertSessionHasErrors('invitation_code');
         $this->post('/activate', $this->submission($private['code']))->assertRedirect('/login');
         $member = User::where('username', 'bartutest')->firstOrFail();
         $this->assertSame('representative', $member->role);
         $this->assertFalse($member->can_view_all_finance);
-        $this->assertDatabaseHas('onboarding_events', ['invitation_id' => $old->id, 'action' => 'team_invitation_revoked_for_reissue']);
-        $this->assertDatabaseHas('onboarding_events', ['invitation_id' => $new->id, 'action' => 'team_invitation_reissued']);
+        $this->assertDatabaseHas('onboarding_events', ['invitation_id' => $invitation->id, 'action' => 'team_invitation_code_replaced']);
+        $this->assertDatabaseHas('onboarding_events', ['invitation_id' => $invitation->id, 'action' => 'team_invitation_reissued']);
     }
 
     public function test_reissue_fails_closed_for_unauthorized_or_unsafe_identity(): void
@@ -97,11 +98,11 @@ class InvitationRecoveryTest extends TestCase
         $invitation = $this->invitation(str_repeat('b', 64));
 
         $this->artisan('koza:reissue-invitation', ['username' => 'bartutest', '--issuer' => $outsider->email])->assertFailed();
-        $this->assertNull($invitation->fresh()->revoked_at);
+        $originalHash = $invitation->fresh()->token_hash;
 
         $invitation->update(['can_view_all_finance' => true]);
         $this->artisan('koza:reissue-invitation', ['username' => 'bartutest', '--issuer' => $owner->email])->assertFailed();
-        $this->assertNull($invitation->fresh()->revoked_at);
+        $this->assertSame($originalHash, $invitation->fresh()->token_hash);
         $this->assertDatabaseCount('account_invitations', 1);
         $this->assertEmpty(File::files(storage_path('app/private/team-invitations')));
     }
